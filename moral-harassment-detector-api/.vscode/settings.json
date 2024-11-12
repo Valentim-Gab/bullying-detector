@@ -1,0 +1,4 @@
+{
+  "scss.lint.unknownAtRules": "ignore",
+  "material-icon-theme.activeIconPack": "nest"
+}
