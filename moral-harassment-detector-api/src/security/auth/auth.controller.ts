@@ -1,19 +1,9 @@
-import {
-  Controller,
-  Post,
-  UseGuards,
-  Res,
-  Head,
-  Patch,
-  Param,
-  Body,
-  ValidationPipe,
-} from '@nestjs/common'
+import { Controller, Post, UseGuards, Res, Head } from '@nestjs/common'
 import { LocalAuthGuard } from '../guards/local-auth.guard'
 import { AuthService } from './auth.service'
 import { ReqUser } from 'src/decorators/req-user.decorator'
 import { Response } from 'express'
-import { UserService } from 'src/routers/user/user.service'
+import { UserService } from 'src/entities/user/user.service'
 import { Payload } from './auth.interface'
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard'
 import { users } from '@prisma/client'
@@ -21,7 +11,6 @@ import { Role } from 'src/enums/Role'
 import { JwtAuthGuard } from '../guards/jwt-auth.guard'
 import { RolesGuard } from '../guards/roles.guard'
 import { Roles } from 'src/decorators/roles.decorator'
-import { ChangePasswordDto } from './dtos/change-password.dto'
 
 @Controller()
 export class AuthController {

@@ -3,7 +3,10 @@ export interface AudioDetect {
   recordingAudio: string
   recordingTranscribed: string
   mistralResult?: boolean
+  mistralMessage?: string
   cohereResult?: boolean
+  cohereMessage?: string
   databaseResult?: boolean
+  databaseUsername?: string
   similarityResult?: boolean
 }

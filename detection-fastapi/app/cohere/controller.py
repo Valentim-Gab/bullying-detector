@@ -18,7 +18,7 @@ async def detect_harassment_mistral_text(text_input):
             {
                 "role": "user",
                 "content": f"Detecte se na seguinte frase há assédio moral e responda apenas 'True' ou 'False'. "
-                           f"Frase: {text_input}"
+                           f"Justifique resumidamente. Frase: {text_input}"
             }
         ]
     )
@@ -27,11 +27,10 @@ async def detect_harassment_mistral_text(text_input):
         return JSONResponse(content={"detected": 'false'})
 
     message = res.message.content[0].text
-    print(message)
-
+    split_msg = message.removeprefix('True. ')
     result = False
 
     if message:
         result = str(message).startswith('True')
 
-    return JSONResponse(content={"detected": result, "message": message})
+    return JSONResponse(content={"detected": result, "message": split_msg})

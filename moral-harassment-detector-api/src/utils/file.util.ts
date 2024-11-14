@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { exec } from 'child_process'
 import { randomUUID } from 'crypto'
 import { createWriteStream } from 'fs'
-import { ensureDir } from 'fs-extra'
+import { ensureDir, readFile } from 'fs-extra'
 import { extname } from 'path'
 import { FileConstants } from 'src/constants/file.constant'
 
@@ -58,6 +58,18 @@ export class FileUtil {
       })
     } catch (error) {
       console.error('Erro ao transcrever áudio:', error)
+      throw error
+    }
+  }
+
+  async getRecord(filename: string) {
+    const audioPath = `${this.rootDirectory}/record/${filename}`
+
+    try {
+      const buffer = await readFile(audioPath)
+
+      return Buffer.from(buffer)
+    } catch (error) {
       throw error
     }
   }

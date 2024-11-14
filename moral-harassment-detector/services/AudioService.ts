@@ -1,10 +1,11 @@
 import { Environment } from '@/environments/environment'
 import { AudioDetect } from '@/interfaces/Audio'
+import { HarassmentPhrase } from '@/interfaces/HarassmentPhrase'
 
 export class AudioService {
   private readonly apiUrl = Environment.apiUrl
 
-  async transcribeAudio(recordCover: any): Promise<boolean> {
+  async detect(recordCover: any): Promise<boolean> {
     try {
       const formData = new FormData()
       formData.append('record', recordCover)
@@ -55,6 +56,27 @@ export class AudioService {
     } catch (error) {
       console.error(error)
       return null
+    }
+  }
+
+  async saveHarassmentPhrase(phrase: HarassmentPhrase): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.apiUrl}/harassment-phrase`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(phrase),
+      })
+
+      if (!res || !res.ok) {
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error(error)
+      return false
     }
   }
 }

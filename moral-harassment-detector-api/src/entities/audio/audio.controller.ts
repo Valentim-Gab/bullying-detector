@@ -4,11 +4,13 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { AudioService } from './audio.service'
+import { Response } from 'express'
 
 @Controller('audio')
 export class AudioController {
@@ -32,5 +34,10 @@ export class AudioController {
   @Get(':id')
   getAudio(@Param('id', ParseIntPipe) id: number) {
     return this.audioService.getOne(id)
+  }
+
+  @Get('download/:filename')
+  downloadAudio(@Param('filename') filename: string, @Res() res: Response) {
+    return this.audioService.download(filename, res)
   }
 }

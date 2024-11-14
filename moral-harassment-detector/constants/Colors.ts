@@ -15,6 +15,7 @@ export const Colors = {
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: primary,
+    placeholder: '#687076',
   },
   dark: {
     primary: primaryDark,

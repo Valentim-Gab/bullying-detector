@@ -17,27 +17,31 @@ headers = {
 
 @app.get('/detect/mistral/text')
 async def detect_harassment_mistral_text(text_input):
+    print(mistral_token)
+
     data = {
         "model": "open-mistral-7b",
         "messages": [
             {"role": "user",
              "content": f"Detecte se na seguinte frase há assédio moral e responda apenas 'True' ou 'False'. "
-                        f"Frase: '{text_input}'"}
+                        f"Justifique resumidamente. Frase: {text_input}"}
         ],
         "temperature": 0.7
     }
 
     res = requests.post(url, headers=headers, json=data)
 
+    print(res)
+
     if not res or res.status_code != 200:
         return JSONResponse(content={"detected": 'false'})
 
     completion = res.json()
     message = completion["choices"][0]["message"]["content"]
-
+    split_msg = message.removeprefix('True. ')
     result = False
 
     if message:
         result = str(message).startswith('True')
 
-    return JSONResponse(content={"detected": result, "message": message})
+    return JSONResponse(content={"detected": result, "message": split_msg})

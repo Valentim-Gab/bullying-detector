@@ -23,14 +23,6 @@ export default function TesteScreen() {
     await sound.playAsync()
   }
 
-  const fetchData = async () => {
-    const data = await audioService.test()
-
-    if (data) {
-      setData(data)
-    }
-  }
-
   useEffect(() => {
     return sound
       ? () => {
@@ -39,10 +31,6 @@ export default function TesteScreen() {
         }
       : undefined
   }, [sound])
-
-  useEffect(() => {
-    fetchData()
-  }, [audioService])
 
   return (
     <ThemedSafeView className="flex-1 justify-center items-center">

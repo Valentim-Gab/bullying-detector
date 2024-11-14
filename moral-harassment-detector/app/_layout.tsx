@@ -97,8 +97,16 @@ export default function RootLayout() {
             animation: 'fade',
           }}
         />
+        <Stack.Screen
+          name="phrase/[id]"
+          options={({ route }) => ({
+            headerTitle: `Detecção #${
+              (route.params as { id: number })?.id ?? 0
+            }`,
+            animation: 'slide_from_right',
+          })}
+        />
       </Stack>
-      
     </ThemeProvider>
   )
 }

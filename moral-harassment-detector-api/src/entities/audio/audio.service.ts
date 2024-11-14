@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Detection } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
@@ -7,6 +7,8 @@ import { PrismaUtil } from 'src/utils/prisma.util'
 import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
 import { HttpStatusCode } from 'axios'
+import { Detection as IDetection } from 'src/interfaces/detection.interface'
+import { Response } from 'express'
 
 @Injectable()
 export class AudioService {
@@ -20,7 +22,6 @@ export class AudioService {
 
   async transcribeAudio(filename: string) {
     const transcribedText = await this.fileUtil.transcribeAudio(filename)
-    console.log('[TRANSCRIBED TEXT]: ', transcribedText)
 
     return transcribedText
   }
@@ -30,15 +31,18 @@ export class AudioService {
     const transcribedText = await this.transcribeAudio(filename)
     const databaseResult = await this.detectDatabase(transcribedText)
     const similarityResult = await this.detectSimilarity(transcribedText)
-    const mistralResult = false //await this.detectMistral(transcribedText)
-    const cohereResult = false //await this.detectCohere(transcribedText)
+    const mistralResult = null // await this.detectMistral(transcribedText)
+    const cohereResult = null // await this.detectCohere(transcribedText)
     const newDetection: Omit<Detection, 'idDetection'> = {
       recordingAudio: filename,
       recordingTranscribed: transcribedText,
-      mistralResult: mistralResult,
-      cohereResult: cohereResult,
-      databaseResult: databaseResult,
-      similarityResult: similarityResult,
+      mistralResult: mistralResult.detected ?? false,
+      mistralMessage: mistralResult.message,
+      cohereResult: cohereResult.detected ?? false,
+      cohereMessage: cohereResult.message,
+      databaseResult: databaseResult.detected ?? false,
+      databaseUsername: databaseResult.username,
+      similarityResult: similarityResult.detected ?? false,
     }
 
     return this.prismaUtil.performOperation(
@@ -81,7 +85,7 @@ export class AudioService {
     )
   }
 
-  async detectDatabase(text: string) {
+  async detectDatabase(text: string): Promise<IDetection | null> {
     const result = await this.prisma.$queryRaw` 
       SELECT 
         CASE WHEN EXISTS (
@@ -90,63 +94,75 @@ export class AudioService {
           WHERE ${text} ILIKE CONCAT('%', phrase, '%')
         ) THEN TRUE
         ELSE FALSE
-        END AS harassment_detected;
+        END AS harassment_detected,
+        USERNAME
+      FROM harassment_phrase
+      WHERE ${text} ILIKE CONCAT('%', phrase, '%')
+      LIMIT 1;
     `
 
-    return result[0]?.harassment_detected ?? false
+    return {
+      detected: result[0]?.harassment_detected ?? false,
+      username: result[0]?.username ?? null,
+    }
   }
 
-  async detectSimilarity(text: string) {
+  async detectSimilarity(text: string): Promise<IDetection | null> {
     const url = `${this.config.get('detectApiUrl')}/detect/similarity/embeddings?text_input=${encodeURIComponent(text)}`
 
     try {
       const res = await firstValueFrom(this.httpService.get(url))
 
       if (!res || res.status != HttpStatusCode.Ok) {
-        return false
+        return null
       }
 
-      console.log(res.data)
-
-      return res.data.detected
+      return res.data
     } catch (error) {
       console.error('Erro ao fazer requisição para FastAPI:', error)
     }
   }
 
-  async detectMistral(text: string) {
+  async detectMistral(text: string): Promise<IDetection | null> {
     const url = `${this.config.get('detectApiUrl')}/detect/mistral/text?text_input=${encodeURIComponent(text)}`
 
     try {
       const res = await firstValueFrom(this.httpService.get(url))
 
       if (!res || res.status != HttpStatusCode.Ok) {
-        return false
+        return null
       }
 
-      console.log(res.data)
-
-      return res.data.detected
+      return res.data
     } catch (error) {
       console.error('Erro ao fazer requisição para FastAPI:', error)
     }
   }
 
-  async detectCohere(text: string) {
+  async detectCohere(text: string): Promise<IDetection | null> {
     const url = `${this.config.get('detectApiUrl')}/detect/cohere/text?text_input=${encodeURIComponent(text)}`
 
     try {
       const res = await firstValueFrom(this.httpService.get(url))
 
       if (!res || res.status != HttpStatusCode.Ok) {
-        return false
+        return null
       }
 
-      console.log(res.data)
-
-      return res.data.detected
+      return res.data
     } catch (error) {
       console.error('Erro ao fazer requisição para FastAPI:', error)
+    }
+  }
+
+  async download(filename: string, res: Response) {
+    try {
+      const bytes = await this.fileUtil.getRecord(filename)
+
+      res.setHeader('Content-Type', 'audio/mpeg')
+      res.send(bytes)
+    } catch (error) {
+      throw new BadRequestException(`Gravação não encontrada`)
     }
   }
 }

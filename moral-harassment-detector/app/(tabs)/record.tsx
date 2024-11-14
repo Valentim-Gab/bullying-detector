@@ -117,11 +117,11 @@ export default function RecordScreen() {
   async function transcribeAudio(recordCover: any) {
     const times = 4
 
-    let isSuccess = await audioService.transcribeAudio(recordCover)
+    let isSuccess = await audioService.detect(recordCover)
 
     for (let i = 0; i < times; i++) {
       if (!isSuccess) {
-        isSuccess = await audioService.transcribeAudio(recordCover)
+        isSuccess = await audioService.detect(recordCover)
       }
     }
 

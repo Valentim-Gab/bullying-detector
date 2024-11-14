@@ -25,8 +25,11 @@ model Detection {
   recordingAudio       String   @map("recording_audio")
   recordingTranscribed String   @map("recording_transcribed")
   mistralResult        Boolean? @map("mistral_result")
+  mistralMessage       String?  @map("mistral_message")
   cohereResult         Boolean? @map("cohere_result")
+  cohereMessage        String?  @map("cohere_message")
   databaseResult       Boolean? @map("database_result")
+  databaseUsername     String?  @map("database_username") @db.VarChar(100)
   similarityResult     Boolean? @map("similarity_result")
 
   @@map("detection")
@@ -34,7 +37,8 @@ model Detection {
 
 model harassmentPhrase {
   idPhrase Int     @id @default(autoincrement()) @map("id_phrase")
-  phrase    String? @db.VarChar(100)
+  phrase   String? @db.VarChar(100)
+  username String? @default("Sistema") @db.VarChar(100)
 
   @@map("harassment_phrase")
 }
