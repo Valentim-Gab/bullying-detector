@@ -10,13 +10,13 @@ import * as SplashScreen from 'expo-splash-screen'
 import { useColorScheme } from 'nativewind'
 import {
   Appearance,
-  StatusBar,
   useColorScheme as useNativeColorScheme,
 } from 'react-native'
 import { useEffect } from 'react'
-import 'react-native-reanimated'
 import { ThemeEnum } from '@/enums/ThemeEnum'
+import { Colors } from '@/constants/Colors'
 import * as NavigationBar from 'expo-navigation-bar'
+import { StatusBar } from 'expo-status-bar'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -24,16 +24,15 @@ export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme()
   const nativeColorScheme = useNativeColorScheme() ?? ThemeEnum.Light
 
-  StatusBar.setBarStyle(
-    colorScheme === ThemeEnum.Dark ? 'light-content' : 'dark-content'
-  )
-  NavigationBar.setBackgroundColorAsync(
-    colorScheme === ThemeEnum.Light ? 'white' : '#111'
-  )
-
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   })
+
+  useEffect(() => {
+    NavigationBar.setBackgroundColorAsync(
+      colorScheme === ThemeEnum.Light ? 'white' : '#111'
+    )
+  }, [colorScheme])
 
   useEffect(() => {
     async function setStoredTheme() {
@@ -86,8 +85,17 @@ export default function RootLayout() {
     <ThemeProvider
       value={colorScheme === ThemeEnum.Dark ? DarkTheme : DefaultTheme}
     >
+      <StatusBar
+        style={colorScheme === ThemeEnum.Dark ? 'light' : 'dark'}
+        translucent={true}
+      />
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            headerShown: false,
+          }}
+        />
         <Stack.Screen name="+not-found" />
         <Stack.Screen
           name="(modals)/modal-detect/[id]"
@@ -104,6 +112,16 @@ export default function RootLayout() {
               (route.params as { id: number })?.id ?? 0
             }`,
             animation: 'slide_from_right',
+            headerStyle: {
+              backgroundColor:
+                colorScheme === ThemeEnum.Dark
+                  ? Colors.dark.backgroundSecondary
+                  : Colors.light.backgroundSecondary,
+            },
+            headerTintColor:
+              colorScheme === ThemeEnum.Dark
+                ? Colors.dark.text
+                : Colors.light.text,
           })}
         />
       </Stack>

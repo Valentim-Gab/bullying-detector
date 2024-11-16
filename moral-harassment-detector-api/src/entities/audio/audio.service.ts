@@ -52,8 +52,6 @@ export class AudioService {
           data: newDetection,
         })
 
-        console.log('[DETECTION]: ', detection)
-
         return detection
       },
     )
@@ -164,5 +162,19 @@ export class AudioService {
     } catch (error) {
       throw new BadRequestException(`Gravação não encontrada`)
     }
+  }
+
+  async updateUsername(id: number, username: string) {
+    return this.prismaUtil.performOperation(
+      'Não foi possível realizar a detecção',
+      async () => {
+        const detection = await this.prisma.detection.update({
+          data: { databaseUsername: username, databaseResult: true },
+          where: { idDetection: id },
+        })
+
+        return detection
+      },
+    )
   }
 }

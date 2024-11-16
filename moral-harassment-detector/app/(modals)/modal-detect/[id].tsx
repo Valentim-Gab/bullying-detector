@@ -43,10 +43,9 @@ export default function ModalDetectScreen() {
   }
 
   useEffect(() => {
-    fetchAudio(Number(id))
-
     const unsubscribeFocus = navigation.addListener('focus', () => {
       setModalVisible(true)
+      fetchAudio(Number(id))
     })
 
     const unsubscribeBlur = navigation.addListener('blur', () => {
@@ -151,7 +150,7 @@ export default function ModalDetectScreen() {
           </View>
           <ScrollView style={{ paddingHorizontal: 32 }}>
             <View className="flex-col justify-center gap-y-4 mt-4">
-              <View className="border border-muted-strong rounded-xl p-4">
+              <View className="border border-muted-strong dark:border-dark-muted rounded-xl p-4">
                 <View className="flex-row items-center">
                   <Image
                     source={require('@/assets/images/mistral-logo.png')}
@@ -173,7 +172,7 @@ export default function ModalDetectScreen() {
                   {audio?.mistralMessage ?? 'não disponível'}
                 </ThemedText>
               </View>
-              <View className="border border-muted-strong rounded-xl p-4">
+              <View className="border border-muted-strong dark:border-dark-muted rounded-xl p-4">
                 <View className="flex-row items-center">
                   <Image
                     source={require('@/assets/images/cohere-logo.png')}
@@ -195,7 +194,7 @@ export default function ModalDetectScreen() {
                   {audio?.cohereMessage ?? 'não disponível'}
                 </ThemedText>
               </View>
-              <View className="border border-muted-strong rounded-xl p-4">
+              <View className="border border-muted-strong dark:border-dark-muted rounded-xl p-4">
                 <View className="flex-row items-center">
                   <Image
                     source={require('@/assets/images/database-logo.png')}
@@ -232,7 +231,7 @@ export default function ModalDetectScreen() {
                   </Pressable>
                 )}
               </View>
-              <View className="flex-row items-center border border-muted-strong rounded-xl p-4">
+              <View className="flex-row items-center border border-muted-strong dark:border-dark-muted rounded-xl p-4">
                 <Image
                   source={require('@/assets/images/similarity-logo.png')}
                   className="w-12 h-12"

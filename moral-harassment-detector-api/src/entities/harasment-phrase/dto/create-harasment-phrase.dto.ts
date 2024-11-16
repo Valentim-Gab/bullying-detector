@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator'
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
 export class CreateHarassmentPhraseDto {
   @IsString()
@@ -7,4 +7,7 @@ export class CreateHarassmentPhraseDto {
 
   @IsString()
   username: string
+
+  @IsNumber()
+  idDetection: number
 }

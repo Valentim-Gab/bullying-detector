@@ -11,22 +11,18 @@ export default function TesteScreen() {
   const [data, setData] = useState<any>()
 
   async function playSound() {
-    console.log('Loading Sound')
-
     const { sound } = await Audio.Sound.createAsync(
       require('@/assets/audios/music.mp3')
     )
 
     setSound(sound)
 
-    console.log('Playing Sound')
     await sound.playAsync()
   }
 
   useEffect(() => {
     return sound
       ? () => {
-          console.log('Unloading Sound')
           sound.unloadAsync()
         }
       : undefined

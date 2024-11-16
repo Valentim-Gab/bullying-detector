@@ -14,8 +14,6 @@ export class HarassmentPhraseController {
     @Body(new ValidationPipe())
     createHarassmentPhraseDto: CreateHarassmentPhraseDto,
   ) {
-    console.log('createHarassmentPhraseDto', createHarassmentPhraseDto)
-
     return this.harassmentPhraseService.create(createHarassmentPhraseDto)
   }
 }

@@ -45,7 +45,6 @@ export default function RecordScreen() {
   async function startRecording() {
     try {
       if (permissionResponse && permissionResponse.status !== 'granted') {
-        console.log('Requesting permission..')
         await requestPermission()
       }
       await Audio.setAudioModeAsync({
@@ -53,7 +52,6 @@ export default function RecordScreen() {
         playsInSilentModeIOS: true,
       })
 
-      console.log('Starting recording..')
 
       const { ios, android } = Audio.RecordingOptionsPresets.HIGH_QUALITY
       const { recording } = await Audio.Recording.createAsync({
@@ -66,7 +64,6 @@ export default function RecordScreen() {
       } as Audio.RecordingOptions)
 
       setRecording(recording)
-      console.log('Recording started')
     } catch (err) {
       console.error('Failed to start recording', err)
     }
@@ -88,7 +85,6 @@ export default function RecordScreen() {
       to: newUri,
     })
     setAudioUri(newUri)
-    console.log('Recording moved to', newUri)
 
     const recordCover = {
       uri: newUri,
@@ -107,10 +103,9 @@ export default function RecordScreen() {
   }
 
   async function playSound(uri: string) {
-    console.log('Loading sound from', uri)
     const { sound } = await Audio.Sound.createAsync({ uri })
+    
     setSound(sound)
-    console.log('Playing sound')
     await sound.playAsync()
   }
 
