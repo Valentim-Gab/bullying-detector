@@ -1,8 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { PrismaUtil } from 'src/utils/prisma.util'
-import { CreateHarassmentPhraseDto } from './dto/create-harasment-phrase.dto'
+import { UpdateHarassmentPhraseDto } from './dto/update-harasment-phrase.dto'
 import { AudioService } from '../audio/audio.service'
+import { harassmentPhrase } from '@prisma/client'
+import { CreateHarassmentPhraseDto } from './dto/create-harasment-phrase.dto'
 
 @Injectable()
 export class HarassmentPhraseService {
@@ -13,9 +15,10 @@ export class HarassmentPhraseService {
   ) {}
 
   async create(createHarassmentPhraseDto: CreateHarassmentPhraseDto) {
-    const newPhrase = {
+    const newPhrase: Partial<harassmentPhrase> = {
       phrase: createHarassmentPhraseDto.phrase,
-      username: createHarassmentPhraseDto.username,
+      approveUserList: [createHarassmentPhraseDto.username],
+      userDetect: true,
     }
 
     const phrase = await this.prismaUtil.performOperation(
@@ -35,7 +38,51 @@ export class HarassmentPhraseService {
 
     return await this.audioService.updateUsername(
       createHarassmentPhraseDto.idDetection,
-      phrase.username,
+      phrase.idPhrase,
+      createHarassmentPhraseDto.username,
+      true,
+    )
+  }
+
+  async update(updatePhrase: UpdateHarassmentPhraseDto, idPhrase: number) {
+    const detection = await this.prisma.harassmentPhrase.findUnique({
+      where: { idPhrase: idPhrase },
+    })
+
+    if (!detection) {
+      throw new Error('Detecção não encontrada.')
+    }
+
+    const data: Partial<harassmentPhrase> = {
+      approveUserList: updatePhrase.approve
+        ? [...(detection.approveUserList || []), updatePhrase.username]
+        : detection.approveUserList,
+      rejectUserList: !updatePhrase.approve
+        ? [...(detection.rejectUserList || []), updatePhrase.username]
+        : detection.rejectUserList,
+    }
+
+    const newPhrase = await this.prismaUtil.performOperation(
+      'Não foi possível atualizar a frase de assédio moral',
+      async () => {
+        return await this.prisma.harassmentPhrase.update({
+          data: data,
+          where: { idPhrase: idPhrase },
+        })
+      },
+    )
+
+    if (!newPhrase) {
+      throw new BadRequestException(
+        'Não foi possível atualizar a frase de assédio moral',
+      )
+    }
+
+    return await this.audioService.updateUsername(
+      updatePhrase.idDetection,
+      idPhrase,
+      updatePhrase.username,
+      updatePhrase.approve,
     )
   }
 }

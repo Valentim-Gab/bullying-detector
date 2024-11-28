@@ -29,6 +29,13 @@ export default function ModalDetectScreen() {
   const [loading, setLoading] = useState(false)
   const { colorScheme } = useColorScheme()
   const { id } = useLocalSearchParams()
+  enum databaseResult {
+    DETECTED_ADM,
+    DETECTED_USERS,
+    UNDETECTED_USERS,
+    UNDETERMINATED_USERS,
+    UNDETECTED,
+  }
 
   const fetchAudio = async (id: number) => {
     setLoading(true)
@@ -73,8 +80,70 @@ export default function ModalDetectScreen() {
     return <Ionicons name="close-circle" size={48} color={Colors.negative} />
   }
 
-  const getDatabaseTextEntity = (text: string) => {
-    return text.toUpperCase() === 'SISTEMA' ? text : `usuário ${text}`
+  const getDatabaseTextEntity = (audio: AudioDetect) => {
+    const results = [
+      `O áudio contém assédio moral baseado nos dados do Administrador`,
+      `O áudio contém assédio moral baseado na opinião dos usuários`,
+      `O áudio não contém assédio moral baseado na opinião dos usuários`,
+      `A opinião dos usuários está empatada, não foi possível determinar se o áudio contém assédio moral`,
+      '',
+    ]
+
+    const database = getDatabaseResult(audio)
+
+    return results[database]
+  }
+
+  const getDatabaseIcon = (audio: AudioDetect) => {
+    const database = getDatabaseResult(audio)
+
+    if (
+      database === databaseResult.UNDETECTED ||
+      database === databaseResult.UNDETECTED_USERS
+    ) {
+      return <Ionicons name="close-circle" size={48} color={Colors.negative} />
+    }
+
+    if (
+      database === databaseResult.DETECTED_ADM ||
+      database === databaseResult.DETECTED_USERS
+    ) {
+      return (
+        <Ionicons name="checkmark-circle" size={48} color={Colors.positive} />
+      )
+    }
+
+    return <Ionicons name="help-circle" size={48} color={Colors.warning} />
+  }
+
+  const getDatabaseResult = (audio: AudioDetect): databaseResult => {
+    if (
+      audio.databaseUserDetect &&
+      audio.databaseApproveUserList &&
+      audio.databaseRejectUserList
+    ) {
+      if (
+        audio.databaseApproveUserList.length >
+        audio.databaseRejectUserList.length
+      ) {
+        return databaseResult.DETECTED_USERS
+      }
+
+      if (
+        audio.databaseApproveUserList.length <
+        audio.databaseRejectUserList.length
+      ) {
+        return databaseResult.UNDETECTED_USERS
+      }
+
+      return databaseResult.UNDETERMINATED_USERS
+    }
+
+    if (audio.databaseResult) {
+      return databaseResult.DETECTED_ADM
+    }
+
+    return databaseResult.UNDETECTED
   }
 
   async function playSound(filename: string) {
@@ -203,7 +272,7 @@ export default function ModalDetectScreen() {
                   <ThemedText className="flex-1 text-xl mx-4">
                     Database
                   </ThemedText>
-                  {audio && getIcon(audio.databaseResult)}
+                  {audio && getDatabaseIcon(audio)}
                   {!audio && loading && (
                     <ActivityIndicator
                       color={Colors.light.primary}
@@ -211,14 +280,20 @@ export default function ModalDetectScreen() {
                     />
                   )}
                 </View>
-                {audio && audio.databaseResult && audio.databaseUsername && (
+                {audio && audio.databaseResult && (
                   <ThemedText className="mt-4">
-                    A gravação contém palavras consideradas assédio pelo{' '}
-                    <ThemedText className="font-bold">
-                      {getDatabaseTextEntity(audio.databaseUsername)}
-                    </ThemedText>
-                    .
+                    {getDatabaseTextEntity(audio)}
                   </ThemedText>
+                )}
+                {audio && audio.databaseResult && audio.databaseUserDetect && (
+                  <Pressable
+                    className="bg-secondary rounded-xl px-2 py-3 mt-4 justify-center items-center"
+                    onPress={() =>
+                      router.push(`/phrase/details/${audio.idDetection}`)
+                    }
+                  >
+                    <ThemedText className="text-white">Ver detalhes</ThemedText>
+                  </Pressable>
                 )}
                 {audio && !audio.databaseResult && (
                   <Pressable

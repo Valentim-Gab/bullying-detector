@@ -31,17 +31,20 @@ export class AudioService {
     const transcribedText = await this.transcribeAudio(filename)
     const databaseResult = await this.detectDatabase(transcribedText)
     const similarityResult = await this.detectSimilarity(transcribedText)
-    const mistralResult = null // await this.detectMistral(transcribedText)
-    const cohereResult = null // await this.detectCohere(transcribedText)
+    const mistralResult = await this.detectMistral(transcribedText)
+    const cohereResult = await this.detectCohere(transcribedText)
     const newDetection: Omit<Detection, 'idDetection'> = {
       recordingAudio: filename,
       recordingTranscribed: transcribedText,
-      mistralResult: mistralResult.detected ?? false,
-      mistralMessage: mistralResult.message,
-      cohereResult: cohereResult.detected ?? false,
-      cohereMessage: cohereResult.message,
+      mistralResult: mistralResult?.detected ?? false,
+      mistralMessage: mistralResult?.message ?? '',
+      cohereResult: cohereResult?.detected ?? false,
+      cohereMessage: cohereResult?.message ?? '',
       databaseResult: databaseResult.detected ?? false,
-      databaseUsername: databaseResult.username,
+      databaseIdPhrase: databaseResult.idPhrase ?? null,
+      databaseUserDetect: databaseResult.userDetect,
+      databaseApproveUserList: databaseResult.approveUserList,
+      databaseRejectUserList: databaseResult.rejectUserList,
       similarityResult: similarityResult.detected ?? false,
     }
 
@@ -93,15 +96,20 @@ export class AudioService {
         ) THEN TRUE
         ELSE FALSE
         END AS harassment_detected,
-        USERNAME
+        USER_DETECT, APPROVE_USER_LIST, REJECT_USER_LIST, ID_PHRASE
       FROM harassment_phrase
       WHERE ${text} ILIKE CONCAT('%', phrase, '%')
       LIMIT 1;
     `
 
+    console.log(result)
+
     return {
       detected: result[0]?.harassment_detected ?? false,
-      username: result[0]?.username ?? null,
+      userDetect: result[0]?.user_detect ?? null,
+      approveUserList: result[0]?.approve_user_list ?? [],
+      rejectUserList: result[0]?.reject_user_list ?? [],
+      idPhrase: result[0]?.id_phrase ?? null,
     }
   }
 
@@ -164,16 +172,41 @@ export class AudioService {
     }
   }
 
-  async updateUsername(id: number, username: string) {
+  async updateUsername(
+    idDetection: number,
+    idPhrase: number,
+    username: string,
+    approve: boolean,
+  ) {
+    const detection = await this.prisma.detection.findUnique({
+      where: { idDetection: idDetection },
+    })
+
+    if (!detection) {
+      throw new Error('Detecção não encontrada.')
+    }
+
+    const data: Partial<Detection> = {
+      databaseResult: true,
+      databaseUserDetect: true,
+      databaseIdPhrase: idPhrase,
+      databaseApproveUserList: approve
+        ? [...(detection.databaseApproveUserList || []), username]
+        : detection.databaseApproveUserList,
+      databaseRejectUserList: !approve
+        ? [...(detection.databaseRejectUserList || []), username]
+        : detection.databaseRejectUserList,
+    }
+
     return this.prismaUtil.performOperation(
       'Não foi possível realizar a detecção',
       async () => {
-        const detection = await this.prisma.detection.update({
-          data: { databaseUsername: username, databaseResult: true },
-          where: { idDetection: id },
+        const updatedDetection = await this.prisma.detection.update({
+          data: data,
+          where: { idDetection: idDetection },
         })
 
-        return detection
+        return updatedDetection
       },
     )
   }

@@ -21,24 +21,29 @@ model users {
 }
 
 model Detection {
-  idDetection          Int      @id @default(autoincrement()) @map("id_detection")
-  recordingAudio       String   @map("recording_audio")
-  recordingTranscribed String   @map("recording_transcribed")
-  mistralResult        Boolean? @map("mistral_result")
-  mistralMessage       String?  @map("mistral_message")
-  cohereResult         Boolean? @map("cohere_result")
-  cohereMessage        String?  @map("cohere_message")
-  databaseResult       Boolean? @map("database_result")
-  databaseUsername     String?  @map("database_username") @db.VarChar(100)
-  similarityResult     Boolean? @map("similarity_result")
+  idDetection             Int      @id @default(autoincrement()) @map("id_detection")
+  recordingAudio          String   @map("recording_audio")
+  recordingTranscribed    String   @map("recording_transcribed")
+  mistralResult           Boolean? @map("mistral_result")
+  mistralMessage          String?  @map("mistral_message")
+  cohereResult            Boolean? @map("cohere_result")
+  cohereMessage           String?  @map("cohere_message")
+  databaseResult          Boolean? @map("database_result")
+  databaseIdPhrase      Int?    @map("database_id_phrase")
+  databaseUserDetect      Boolean? @default(false) @map("database_user_detect")
+  databaseApproveUserList String[] @map("database_approve_user_list") @db.VarChar(100)
+  databaseRejectUserList  String[] @map("database_reject_user_list") @db.VarChar(100)
+  similarityResult        Boolean? @map("similarity_result")
 
   @@map("detection")
 }
 
 model harassmentPhrase {
-  idPhrase Int     @id @default(autoincrement()) @map("id_phrase")
-  phrase   String? @db.VarChar(100)
-  username String? @default("Sistema") @db.VarChar(100)
+  idPhrase        Int      @id @default(autoincrement()) @map("id_phrase")
+  phrase          String?  @db.VarChar(100)
+  userDetect      Boolean? @default(false) @map("user_detect")
+  approveUserList String[] @map("approve_user_list") @db.VarChar(100)
+  rejectUserList  String[] @map("reject_user_list") @db.VarChar(100)
 
   @@map("harassment_phrase")
 }

@@ -2,7 +2,16 @@ INSERT INTO HARASSMENT_PHRASE (PHRASE) VALUES
 ('Vai tomar no [CENSURADO]'),
 ('Vai se [CENSURADO]'),
 ('Pega no meu [CENSURADO]'),
-('Calaboca seu [CENSURADO]');
+('Pega na minha [CENSURADO]'),
+('Pega no meu [CENSURADO]'),
+('Pega no meu [CENSURADO]'),
+('Calaboca seu filho [CENSURADO]'),
+('Calaboca seu a[CENSURADO]'),
+('Calaboca seu c[CENSURADO]'),
+('Calaboca seu m[CENSURADO]'),
+('Calaboca seu b[CENSURADO]'),
+('Calaboca seu v[CENSURADO]'),
+('Calaboca seu ve[CENSURADO]');
 
 INSERT INTO HARASSMENT_PHRASE (PHRASE) VALUES
 ('Você é um inútil'),

@@ -1,5 +1,8 @@
 export interface Detection {
   detected: boolean
   message?: string
-  username?: string
+  userDetect?: boolean
+  approveUserList?: string[]
+  rejectUserList?: string[]
+  idPhrase?: number
 }

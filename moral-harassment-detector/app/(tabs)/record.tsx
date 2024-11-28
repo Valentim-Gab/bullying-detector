@@ -235,7 +235,7 @@ export default function RecordScreen() {
               <ActivityIndicator color={Colors.light.primary} size="large" />
             </View>
           )}
-          {(!audioList || audioList.length < 0) && !loading && (
+          {(!audioList || audioList.length <= 0) && !loading && (
             <View className="flex-1 items-center justify-center gap-4">
               <FontAwesome
                 name="file-audio-o"

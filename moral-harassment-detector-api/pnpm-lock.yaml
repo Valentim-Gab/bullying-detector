@@ -36,8 +36,8 @@ importers:
         specifier: ^10.3.6
         version: 10.4.3(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.4.3)
       '@prisma/client':
-        specifier: 5.21.1
-        version: 5.21.1(prisma@5.21.1)
+        specifier: 5.22.0
+        version: 5.22.0(prisma@5.22.0)
       '@supabase/supabase-js':
         specifier: ^2.40.0
         version: 2.45.4
@@ -65,12 +65,15 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
+      moral-harassment-detector-api:
+        specifier: 'file:'
+        version: file:(chokidar@3.6.0)(nodemailer@6.9.15)(prisma@5.22.0)
       multer:
         specifier: 1.4.5-lts.1
         version: 1.4.5-lts.1
       nestjs-prisma:
         specifier: ^0.22.0
-        version: 0.22.0(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@prisma/client@5.21.1(prisma@5.21.1))(chokidar@3.6.0)(prisma@5.21.1)
+        version: 0.22.0(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@prisma/client@5.22.0(prisma@5.22.0))(chokidar@3.6.0)(prisma@5.22.0)
       passport:
         specifier: ^0.6.0
         version: 0.6.0
@@ -88,13 +91,13 @@ importers:
         version: 7.8.1
       store:
         specifier: 'file:'
-        version: moral-harassment-detector-api@file:(chokidar@3.6.0)(nodemailer@6.9.15)(prisma@5.21.1)
+        version: moral-harassment-detector-api@file:(chokidar@3.6.0)(nodemailer@6.9.15)(prisma@5.22.0)
       stripe:
         specifier: ^14.22.0
         version: 14.25.0
       susi-xavier-api:
         specifier: 'file:'
-        version: moral-harassment-detector-api@file:(chokidar@3.6.0)(nodemailer@6.9.15)(prisma@5.21.1)
+        version: moral-harassment-detector-api@file:(chokidar@3.6.0)(nodemailer@6.9.15)(prisma@5.22.0)
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
@@ -145,8 +148,8 @@ importers:
         specifier: ^3.2.5
         version: 3.3.3
       prisma:
-        specifier: ^5.21.1
-        version: 5.21.1
+        specifier: ^5.22.0
+        version: 5.22.0
       source-map-support:
         specifier: ^0.5.21
         version: 0.5.21
@@ -744,20 +747,29 @@ packages:
       prisma:
         optional: true
 
-  '@prisma/debug@5.21.1':
-    resolution: {integrity: sha512-uY8SAhcnORhvgtOrNdvWS98Aq/nkQ9QDUxrWAgW8XrCZaI3j2X7zb7Xe6GQSh6xSesKffFbFlkw0c2luHQviZA==}
+  '@prisma/client@5.22.0':
+    resolution: {integrity: sha512-M0SVXfyHnQREBKxCgyo7sffrKttwE6R8PMq330MIUF0pTwjUhLbW84pFDlf06B27XyCR++VtjugEnIHdr07SVA==}
+    engines: {node: '>=16.13'}
+    peerDependencies:
+      prisma: '*'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
 
-  '@prisma/engines-version@5.21.1-1.bf0e5e8a04cada8225617067eaa03d041e2bba36':
-    resolution: {integrity: sha512-qvnEflL0//lh44S/T9NcvTMxfyowNeUxTunPcDfKPjyJNrCNf2F1zQLcUv5UHAruECpX+zz21CzsC7V2xAeM7Q==}
+  '@prisma/debug@5.22.0':
+    resolution: {integrity: sha512-AUt44v3YJeggO2ZU5BkXI7M4hu9BF2zzH2iF2V5pyXT/lRTyWiElZ7It+bRH1EshoMRxHgpYg4VB6rCM+mG5jQ==}
 
-  '@prisma/engines@5.21.1':
-    resolution: {integrity: sha512-hGVTldUkIkTwoV8//hmnAAiAchi4oMEKD3aW5H2RrnI50tTdwza7VQbTTAyN3OIHWlK5DVg6xV7X8N/9dtOydA==}
+  '@prisma/engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2':
+    resolution: {integrity: sha512-2PTmxFR2yHW/eB3uqWtcgRcgAbG1rwG9ZriSvQw+nnb7c4uCr3RAcGMb6/zfE88SKlC1Nj2ziUvc96Z379mHgQ==}
 
-  '@prisma/fetch-engine@5.21.1':
-    resolution: {integrity: sha512-70S31vgpCGcp9J+mh/wHtLCkVezLUqe/fGWk3J3JWZIN7prdYSlr1C0niaWUyNK2VflLXYi8kMjAmSxUVq6WGQ==}
+  '@prisma/engines@5.22.0':
+    resolution: {integrity: sha512-UNjfslWhAt06kVL3CjkuYpHAWSO6L4kDCVPegV6itt7nD1kSJavd3vhgAEhjglLJJKEdJ7oIqDJ+yHk6qO8gPA==}
 
-  '@prisma/get-platform@5.21.1':
-    resolution: {integrity: sha512-sRxjL3Igst3ct+e8ya/x//cDXmpLbZQ5vfps2N4tWl4VGKQAmym77C/IG/psSMsQKszc8uFC/q1dgmKFLUgXZQ==}
+  '@prisma/fetch-engine@5.22.0':
+    resolution: {integrity: sha512-bkrD/Mc2fSvkQBV5EpoFcZ87AvOgDxbG99488a5cexp5Ccny+UM6MAe/UFkUC0wLYD9+9befNOqGiIJhhq+HbA==}
+
+  '@prisma/get-platform@5.22.0':
+    resolution: {integrity: sha512-pHhpQdr1UPFpt+zFfnPazhulaZYCUqeIcPpJViYoq9R+D/yw4fjE+CtnsnKzPYm0ddUbeXUzjGVGIRVgPDCk4Q==}
 
   '@schematics/angular@13.3.11':
     resolution: {integrity: sha512-imKBnKYEse0SBVELZO/753nkpt3eEgpjrYkB+AFWF9YfO/4RGnYXDHoH8CFkzxPH9QQCgNrmsVFNiYGS+P/S1A==}
@@ -3171,8 +3183,8 @@ packages:
     resolution: {integrity: sha512-ZtV1YrwscEjlrUzYrTSs6Nwo49JM3pXLM4fFOBSC3wSni+bxaWlw9/Qgk75PZO8M7cX2EybmL2iwvaV3vkAttw==}
     engines: {node: '>=14'}
 
-  prisma@5.21.1:
-    resolution: {integrity: sha512-PB+Iqzld/uQBPaaw2UVIk84kb0ITsLajzsxzsadxxl54eaU5Gyl2/L02ysivHxK89t7YrfQJm+Ggk37uvM70oQ==}
+  prisma@5.22.0:
+    resolution: {integrity: sha512-vtpjW3XuYCSnMsNVBjLMNkTj6OZbudcPPTPYHqX0CJfpcdWciI1dM8uHETwmDxxiqEwCIE6WvXucWUetJgfu/A==}
     engines: {node: '>=16.13'}
     hasBin: true
 
@@ -4684,30 +4696,34 @@ snapshots:
 
   '@pkgr/core@0.1.1': {}
 
-  '@prisma/client@5.21.1(prisma@5.21.1)':
+  '@prisma/client@5.21.1(prisma@5.22.0)':
     optionalDependencies:
-      prisma: 5.21.1
+      prisma: 5.22.0
 
-  '@prisma/debug@5.21.1': {}
+  '@prisma/client@5.22.0(prisma@5.22.0)':
+    optionalDependencies:
+      prisma: 5.22.0
 
-  '@prisma/engines-version@5.21.1-1.bf0e5e8a04cada8225617067eaa03d041e2bba36': {}
+  '@prisma/debug@5.22.0': {}
 
-  '@prisma/engines@5.21.1':
+  '@prisma/engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2': {}
+
+  '@prisma/engines@5.22.0':
     dependencies:
-      '@prisma/debug': 5.21.1
-      '@prisma/engines-version': 5.21.1-1.bf0e5e8a04cada8225617067eaa03d041e2bba36
-      '@prisma/fetch-engine': 5.21.1
-      '@prisma/get-platform': 5.21.1
+      '@prisma/debug': 5.22.0
+      '@prisma/engines-version': 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
+      '@prisma/fetch-engine': 5.22.0
+      '@prisma/get-platform': 5.22.0
 
-  '@prisma/fetch-engine@5.21.1':
+  '@prisma/fetch-engine@5.22.0':
     dependencies:
-      '@prisma/debug': 5.21.1
-      '@prisma/engines-version': 5.21.1-1.bf0e5e8a04cada8225617067eaa03d041e2bba36
-      '@prisma/get-platform': 5.21.1
+      '@prisma/debug': 5.22.0
+      '@prisma/engines-version': 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
+      '@prisma/get-platform': 5.22.0
 
-  '@prisma/get-platform@5.21.1':
+  '@prisma/get-platform@5.22.0':
     dependencies:
-      '@prisma/debug': 5.21.1
+      '@prisma/debug': 5.22.0
 
   '@schematics/angular@13.3.11(chokidar@3.6.0)':
     dependencies:
@@ -7542,9 +7558,10 @@ snapshots:
 
   mkdirp@1.0.4: {}
 
-  moral-harassment-detector-api@file:(chokidar@3.6.0)(nodemailer@6.9.15)(prisma@5.21.1):
+  moral-harassment-detector-api@file:(chokidar@3.6.0)(nodemailer@6.9.15)(prisma@5.22.0):
     dependencies:
       '@nestjs-modules/mailer': 2.0.2(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.4.3)(nodemailer@6.9.15)
+      '@nestjs/axios': 3.1.2(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(axios@1.7.7)(rxjs@7.8.1)
       '@nestjs/common': 10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
       '@nestjs/config': 3.2.3(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(rxjs@7.8.1)
       '@nestjs/core': 10.4.3(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/platform-express@10.4.3)(reflect-metadata@0.1.14)(rxjs@7.8.1)
@@ -7552,9 +7569,10 @@ snapshots:
       '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)
       '@nestjs/passport': 10.0.3(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(passport@0.6.0)
       '@nestjs/platform-express': 10.4.3(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.4.3)
-      '@prisma/client': 5.21.1(prisma@5.21.1)
+      '@prisma/client': 5.21.1(prisma@5.22.0)
       '@supabase/supabase-js': 2.45.4
       '@types/multer': 1.4.12
+      axios: 1.7.7
       bcrypt: 5.1.1
       class-transformer: 0.5.1
       class-validator: 0.14.1
@@ -7562,7 +7580,7 @@ snapshots:
       fs-extra: 11.2.0
       jsonwebtoken: 9.0.2
       multer: 1.4.5-lts.1
-      nestjs-prisma: 0.22.0(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@prisma/client@5.21.1(prisma@5.21.1))(chokidar@3.6.0)(prisma@5.21.1)
+      nestjs-prisma: 0.22.0(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@prisma/client@5.21.1(prisma@5.22.0))(chokidar@3.6.0)(prisma@5.22.0)
       passport: 0.6.0
       passport-jwt: 4.0.1
       passport-local: 1.0.0
@@ -7575,6 +7593,7 @@ snapshots:
       - '@nestjs/websockets'
       - bufferutil
       - chokidar
+      - debug
       - encoding
       - nodemailer
       - prisma
@@ -7615,14 +7634,25 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  nestjs-prisma@0.22.0(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@prisma/client@5.21.1(prisma@5.21.1))(chokidar@3.6.0)(prisma@5.21.1):
+  nestjs-prisma@0.22.0(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@prisma/client@5.21.1(prisma@5.22.0))(chokidar@3.6.0)(prisma@5.22.0):
     dependencies:
       '@angular-devkit/core': 13.3.11(chokidar@3.6.0)
       '@angular-devkit/schematics': 13.3.11(chokidar@3.6.0)
       '@nestjs/common': 10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
-      '@prisma/client': 5.21.1(prisma@5.21.1)
+      '@prisma/client': 5.21.1(prisma@5.22.0)
       '@schematics/angular': 13.3.11(chokidar@3.6.0)
-      prisma: 5.21.1
+      prisma: 5.22.0
+    transitivePeerDependencies:
+      - chokidar
+
+  nestjs-prisma@0.22.0(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@prisma/client@5.22.0(prisma@5.22.0))(chokidar@3.6.0)(prisma@5.22.0):
+    dependencies:
+      '@angular-devkit/core': 13.3.11(chokidar@3.6.0)
+      '@angular-devkit/schematics': 13.3.11(chokidar@3.6.0)
+      '@nestjs/common': 10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
+      '@prisma/client': 5.22.0(prisma@5.22.0)
+      '@schematics/angular': 13.3.11(chokidar@3.6.0)
+      prisma: 5.22.0
     transitivePeerDependencies:
       - chokidar
 
@@ -7892,9 +7922,9 @@ snapshots:
       uuid: 9.0.1
     optional: true
 
-  prisma@5.21.1:
+  prisma@5.22.0:
     dependencies:
-      '@prisma/engines': 5.21.1
+      '@prisma/engines': 5.22.0
     optionalDependencies:
       fsevents: 2.3.3
 

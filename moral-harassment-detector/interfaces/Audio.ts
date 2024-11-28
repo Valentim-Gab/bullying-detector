@@ -7,6 +7,9 @@ export interface AudioDetect {
   cohereResult?: boolean
   cohereMessage?: string
   databaseResult?: boolean
-  databaseUsername?: string
+  databaseUserDetect?: boolean
+  databaseApproveUserList?: string[]
+  databaseRejectUserList?: string[]
+  databaseIdPhrase?: number
   similarityResult?: boolean
 }

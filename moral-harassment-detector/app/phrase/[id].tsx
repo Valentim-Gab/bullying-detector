@@ -70,7 +70,7 @@ export default function PhraseScreen() {
 
   return (
     <ThemedSafeView className="flex-1 dark:border-t dark:border-dark-muted">
-      <ThemedView className="p-8 flex-1">
+      <ThemedView className="px-8 flex-1">
         <ThemedText>
           <ThemedText className="font-bold">Texto gerado: </ThemedText>
           {audio.recordingTranscribed}

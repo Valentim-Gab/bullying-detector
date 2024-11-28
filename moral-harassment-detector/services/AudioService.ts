@@ -79,4 +79,25 @@ export class AudioService {
       return false
     }
   }
+
+  async updateHarassmentPhrase(phrase: Omit<HarassmentPhrase, 'phrase'>, id: number): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.apiUrl}/harassment-phrase/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(phrase),
+      })
+
+      if (!res || !res.ok) {
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error(error)
+      return false
+    }
+  }
 }

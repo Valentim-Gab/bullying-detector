@@ -110,7 +110,26 @@ export default function RootLayout() {
           options={({ route }) => ({
             headerTitle: `Detecção #${
               (route.params as { id: number })?.id ?? 0
-            }`,
+            } - Database`,
+            animation: 'slide_from_right',
+            headerStyle: {
+              backgroundColor:
+                colorScheme === ThemeEnum.Dark
+                  ? Colors.dark.backgroundSecondary
+                  : Colors.light.backgroundSecondary,
+            },
+            headerTintColor:
+              colorScheme === ThemeEnum.Dark
+                ? Colors.dark.text
+                : Colors.light.text,
+          })}
+        />
+        <Stack.Screen
+          name="phrase/details/[id]"
+          options={({ route }) => ({
+            headerTitle: `Detecção #${
+              (route.params as { id: number })?.id ?? 0
+            } - Detalhes`,
             animation: 'slide_from_right',
             headerStyle: {
               backgroundColor:
