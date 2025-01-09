@@ -34,12 +34,14 @@ async def detect_harassment_mistral_text(text_input):
     print(res)
 
     if not res or res.status_code != 200:
-        return JSONResponse(content={"detected": 'false'})
+        return JSONResponse(content={"detected": False})
 
     completion = res.json()
     message = completion["choices"][0]["message"]["content"]
     split_msg = message.removeprefix('True. ')
     result = False
+
+    print(message)
 
     if message:
         result = str(message).startswith('True')

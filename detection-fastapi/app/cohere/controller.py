@@ -24,7 +24,7 @@ async def detect_harassment_mistral_text(text_input):
     )
 
     if not res:
-        return JSONResponse(content={"detected": 'false'})
+        return JSONResponse(content={"detected": False})
 
     message = res.message.content[0].text
     split_msg = message.removeprefix('True. ')
