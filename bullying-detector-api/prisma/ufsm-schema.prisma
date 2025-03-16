@@ -1,0 +1,18 @@
+// npx prisma generate --schema=prisma/ufsm-schema.prisma
+
+generator clientUfsm {
+  provider = "prisma-client-js"
+  output   = "./generated/clientUfsm"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("UFSM_DATABASE_URL")
+}
+
+model Avaliation {
+  idAvaliation Int    @id @default(autoincrement()) @map("id_avaliation")
+  mainText     String @map("main_text")
+
+  @@map("avaliation")
+}
