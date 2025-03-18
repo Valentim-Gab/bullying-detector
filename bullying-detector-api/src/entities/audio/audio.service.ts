@@ -31,8 +31,8 @@ export class AudioService {
     const transcribedText = await this.transcribeAudio(filename)
     const databaseResult = await this.detectDatabase(transcribedText)
     const similarityResult = await this.detectSimilarity(transcribedText)
-    const mistralResult = await this.detectMistral(transcribedText)
-    const cohereResult = await this.detectCohere(transcribedText)
+    const mistralResult = null // await this.detectMistral(transcribedText)
+    const cohereResult = null // await this.detectCohere(transcribedText)
     const newDetection: Omit<Detection, 'idDetection'> = {
       recordingAudio: filename,
       mainText: transcribedText,
