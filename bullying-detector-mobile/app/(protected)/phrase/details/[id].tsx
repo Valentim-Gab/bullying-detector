@@ -51,7 +51,7 @@ export default function PhraseScreen() {
 
     setLoadingSave(true)
 
-    if (!audio || !audio.databaseIdPhrase) {
+    if (!audio || !audio.idPhrase) {
       return
     }
 
@@ -63,7 +63,7 @@ export default function PhraseScreen() {
 
     const result = await audioService.updateHarassmentPhrase(
       updatePhrase,
-      audio.databaseIdPhrase
+      audio.idPhrase
     )
 
     setLoadingSave(false)
@@ -104,7 +104,7 @@ export default function PhraseScreen() {
       <ScrollView style={{ paddingHorizontal: 32 }}>
         <ThemedText>
           <ThemedText style={{ fontWeight: 'bold' }}>Texto gerado: </ThemedText>
-          {audio.recordingTranscribed}
+          {audio.mainText}
         </ThemedText>
         <ThemedView style={{ marginTop: 16 }}>
           <ThemedText>
@@ -182,7 +182,7 @@ export default function PhraseScreen() {
                   marginBottom: 8,
                 }}
               >
-                Desconsidera ({audio.databaseRejectUserList?.length ?? 0})
+                Desconsidera ({audio.databaseUsersReject?.length ?? 0})
               </Text>
               <Ionicons name="close" size={28} color={colors.text} />
               <Text
@@ -192,21 +192,21 @@ export default function PhraseScreen() {
                   marginBottom: 8,
                 }}
               >
-                ({audio.databaseApproveUserList?.length ?? 0}) Considera
+                ({audio.databaseUsersApprove?.length ?? 0}) Considera
               </Text>
             </View>
           </View>
           <View style={{ paddingHorizontal: 24 }}>
             <View style={styles.sectionOpinionsContent}>
               <View>
-                {audio.databaseRejectUserList &&
-                  audio.databaseRejectUserList.map((user, index) => (
+                {audio.databaseUsersReject &&
+                  audio.databaseUsersReject.map((user, index) => (
                     <ThemedText key={index}>{user}</ThemedText>
                   ))}
               </View>
               <View className="flex flex-col gap-0 flex-nowrap">
-                {audio.databaseApproveUserList &&
-                  audio.databaseApproveUserList.map((user, index) => (
+                {audio.databaseUsersApprove &&
+                  audio.databaseUsersApprove.map((user, index) => (
                     <ThemedText key={index} style={{ textAlign: 'right' }}>
                       {user ? user : '-'}
                     </ThemedText>

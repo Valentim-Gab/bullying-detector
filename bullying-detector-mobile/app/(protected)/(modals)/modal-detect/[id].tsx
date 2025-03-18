@@ -119,19 +119,19 @@ export default function ModalDetectScreen() {
   const getDatabaseResult = (audio: AudioDetect): databaseResult => {
     if (
       audio.databaseUserDetect &&
-      audio.databaseApproveUserList &&
-      audio.databaseRejectUserList
+      audio.databaseUsersApprove &&
+      audio.databaseUsersReject
     ) {
       if (
-        audio.databaseApproveUserList.length >
-        audio.databaseRejectUserList.length
+        audio.databaseUsersApprove.length >
+        audio.databaseUsersReject.length
       ) {
         return databaseResult.DETECTED_USERS
       }
 
       if (
-        audio.databaseApproveUserList.length <
-        audio.databaseRejectUserList.length
+        audio.databaseUsersApprove.length <
+        audio.databaseUsersReject.length
       ) {
         return databaseResult.UNDETECTED_USERS
       }
@@ -199,7 +199,7 @@ export default function ModalDetectScreen() {
               </View>
               {audio && (
                 <ThemedText style={{ marginTop: 4 }}>
-                  {audio.recordingTranscribed}
+                  {audio.mainText}
                 </ThemedText>
               )}
               {!audio && loading && (

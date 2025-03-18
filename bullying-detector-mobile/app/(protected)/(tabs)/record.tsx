@@ -223,9 +223,9 @@ export default function RecordScreen() {
                   ]}
                 >
                   <ThemedText style={styles.btnAccessText}>
-                    {audio.recordingTranscribed.length > 50
-                      ? `${audio.recordingTranscribed.substring(0, 50)}...`
-                      : audio.recordingTranscribed}
+                    {audio.mainText.length > 50
+                      ? `${audio.mainText.substring(0, 50)}...`
+                      : audio.mainText}
                   </ThemedText>
                   <View style={styles.btnAccessIconSection}>
                     <Ionicons

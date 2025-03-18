@@ -48,7 +48,7 @@ export default function PhraseScreen() {
     }
 
     const result = await audioService.saveHarassmentPhrase({
-      phrase: audio.recordingTranscribed,
+      phrase: audio.mainText,
       username: username,
       idDetection: audio.idDetection,
     })
@@ -89,7 +89,7 @@ export default function PhraseScreen() {
       <ThemedView style={{ flex: 1, paddingHorizontal: 32 }}>
         <ThemedText>
           <ThemedText style={{ fontWeight: 'bold' }}>Texto gerado: </ThemedText>
-          {audio.recordingTranscribed}
+          {audio.mainText}
         </ThemedText>
         <ThemedView style={{ marginTop: 16 }}>
           <ThemedText>Nome:</ThemedText>

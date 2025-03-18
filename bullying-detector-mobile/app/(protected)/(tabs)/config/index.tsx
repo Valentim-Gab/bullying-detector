@@ -1,14 +1,22 @@
-import { StyleSheet, View } from 'react-native'
+import { Button, StyleSheet, View } from 'react-native'
 import { ThemeEnum } from '@/enums/ThemeEnum'
 import { ThemedScroll } from '@/components/ThemedScroll'
 import { ThemedText } from '@/components/ThemedText'
 import { Colors } from '@/constants/Colors'
 import { useTheme } from '@/hooks/useTheme'
+import * as SecureStore from 'expo-secure-store'
 import Checkbox from 'expo-checkbox'
+import { useRouter } from 'expo-router'
 
 export default function ConfigScreen() {
   const { theme, isSystemTheme, setLightTheme, setDarkTheme, setSystemTheme } =
     useTheme()
+  const router = useRouter()
+
+  const logout = async () => {
+    await SecureStore.deleteItemAsync('auth_token')
+    router.replace('/login')
+  }
 
   return (
     <ThemedScroll style={styles.scroll}>
@@ -42,6 +50,7 @@ export default function ConfigScreen() {
           <ThemedText>Sistema</ThemedText>
         </View>
       </View>
+      <Button title='Sair' onPress={logout} />
     </ThemedScroll>
   )
 }

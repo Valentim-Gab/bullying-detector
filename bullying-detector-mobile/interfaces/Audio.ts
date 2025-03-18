@@ -1,15 +1,16 @@
 export interface AudioDetect {
   idDetection: number
   recordingAudio: string
-  recordingTranscribed: string
+  mainText: string
   mistralResult?: boolean
   mistralMessage?: string
   cohereResult?: boolean
   cohereMessage?: string
   databaseResult?: boolean
   databaseUserDetect?: boolean
-  databaseApproveUserList?: string[]
-  databaseRejectUserList?: string[]
-  databaseIdPhrase?: number
+  databaseUsersApprove?: string[]
+  databaseUsersReject?: string[]
   similarityResult?: boolean
+  idPhrase?: number
+  idUser?: number
 }
