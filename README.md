@@ -1,4 +1,4 @@
-# Aplicativo de detecção de assédio moral
+# Aplicativo de detecção de bullying e assédio moral
 Project for the subject Mobile and Pervasive Computing Systems - Ubiquitous data
 
 ###
