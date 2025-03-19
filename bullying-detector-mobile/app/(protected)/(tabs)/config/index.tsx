@@ -4,19 +4,12 @@ import { ThemedScroll } from '@/components/ThemedScroll'
 import { ThemedText } from '@/components/ThemedText'
 import { Colors } from '@/constants/Colors'
 import { useTheme } from '@/hooks/useTheme'
-import * as SecureStore from 'expo-secure-store'
+import { signOut } from '@/services/AuthService'
 import Checkbox from 'expo-checkbox'
-import { useRouter } from 'expo-router'
 
 export default function ConfigScreen() {
   const { theme, isSystemTheme, setLightTheme, setDarkTheme, setSystemTheme } =
     useTheme()
-  const router = useRouter()
-
-  const logout = async () => {
-    await SecureStore.deleteItemAsync('auth_token')
-    router.replace('/login')
-  }
 
   return (
     <ThemedScroll style={styles.scroll}>
@@ -50,7 +43,7 @@ export default function ConfigScreen() {
           <ThemedText>Sistema</ThemedText>
         </View>
       </View>
-      <Button title='Sair' onPress={logout} />
+      <Button title='Sair' onPress={signOut} />
     </ThemedScroll>
   )
 }

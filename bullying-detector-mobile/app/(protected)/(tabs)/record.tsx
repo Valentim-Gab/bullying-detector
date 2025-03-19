@@ -115,11 +115,11 @@ export default function RecordScreen() {
 
     let isSuccess = await audioService.detect(recordCover)
 
-    for (let i = 0; i < times; i++) {
-      if (!isSuccess) {
-        isSuccess = await audioService.detect(recordCover)
-      }
-    }
+    // for (let i = 0; i < times; i++) {
+    //   if (!isSuccess) {
+    //     isSuccess = await audioService.detect(recordCover)
+    //   }
+    // }
 
     return isSuccess
   }

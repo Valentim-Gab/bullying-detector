@@ -1,17 +1,29 @@
-import { useState, useEffect } from "react";
-import * as SecureStore from "expo-secure-store";
+import { useState, useEffect } from 'react'
+import { checkAuth } from '@/services/AuthService'
+import * as SecureStore from 'expo-secure-store'
+import { useRouter } from 'expo-router'
 
 export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const router = useRouter()
+
+  const checkAuthentication = async () => {
+    const hasToken = await SecureStore.getItemAsync('access_token')
+
+    if (!hasToken) {
+      setIsAuthenticated(false)
+      router.replace('/login')
+
+      return
+    }
+
+    const isAuth = await checkAuth()
+    setIsAuthenticated(isAuth)
+  }
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = await SecureStore.getItemAsync("auth_token");
-      setIsAuthenticated(!!token);
-    };
+    checkAuthentication()
+  }, [])
 
-    checkAuth();
-  }, []);
-
-  return { isAuthenticated };
+  return { isAuthenticated }
 }

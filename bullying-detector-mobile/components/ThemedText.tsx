@@ -1,11 +1,12 @@
-import { Text, type TextProps, StyleSheet } from 'react-native';
-import { useTheme } from '@/hooks/useTheme';
+import { Text, type TextProps, StyleSheet } from 'react-native'
+import { useTheme } from '@/hooks/useTheme'
+import { RFValue } from 'react-native-responsive-fontsize'
 
 export type ThemedTextProps = TextProps & {
-  lightColor?: string;
-  darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
-};
+  lightColor?: string
+  darkColor?: string
+  type?: 'default' | 'small' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link'
+}
 
 export function ThemedText({
   style,
@@ -14,14 +15,15 @@ export function ThemedText({
   type = 'default',
   ...rest
 }: ThemedTextProps) {
-  const { colors } = useTheme();	
-  const color = colors.text;
+  const { colors } = useTheme()
+  const color = colors.text
 
   return (
     <Text
       style={[
         { color },
         type === 'default' ? styles.default : undefined,
+        type === 'small' ? styles.small : undefined,
         type === 'title' ? styles.title : undefined,
         type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
         type === 'subtitle' ? styles.subtitle : undefined,
@@ -30,31 +32,35 @@ export function ThemedText({
       ]}
       {...rest}
     />
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   default: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: RFValue(16),
+    lineHeight: RFValue(24),
+  },
+  small: {
+    fontSize: RFValue(14),
+    lineHeight: RFValue(22),
   },
   defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: RFValue(16),
+    lineHeight: RFValue(24),
     fontWeight: '600',
   },
   title: {
-    fontSize: 32,
+    fontSize: RFValue(32),
     fontWeight: 'bold',
-    lineHeight: 32,
+    lineHeight: RFValue(32),
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: RFValue(20),
     fontWeight: 'bold',
   },
   link: {
-    lineHeight: 30,
-    fontSize: 16,
+    lineHeight: RFValue(30),
+    fontSize: RFValue(16),
     color: '#0a7ea4',
   },
-});
+})

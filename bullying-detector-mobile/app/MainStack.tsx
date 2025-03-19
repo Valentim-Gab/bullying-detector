@@ -30,7 +30,7 @@ export default function MainStack() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <Stack>
+      <Stack >
         <Stack.Screen
           name="login/index"
           options={{

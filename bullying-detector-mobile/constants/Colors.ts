@@ -25,6 +25,7 @@ export const Colors = {
     positive: '#2e7d32',
     negative: '#c62828',
     warning: '#f57f17',
+    border: '#444',
   },
   dark: {
     primary: primaryDark,
@@ -35,6 +36,7 @@ export const Colors = {
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: primaryDark,
+    placeholder: '#9BA1A6',
     muted: '#777',
     mutedStrong: '#444',
     card: '#111',
@@ -42,5 +44,6 @@ export const Colors = {
     positive: '#2e7d32',
     negative: '#c62828',
     warning: '#f57f17',
+    border: '#ccc',
   },
 }

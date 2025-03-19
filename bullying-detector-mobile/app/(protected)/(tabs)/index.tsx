@@ -44,7 +44,7 @@ export default function HomeScreen() {
         <ScrollView showsVerticalScrollIndicator={false}>
           <View>
             <ThemedText type="subtitle">Detector de assédio moral</ThemedText>
-            <ThemedText style={styles.textContent}>
+            <ThemedText type='small' style={styles.textContent}>
               Este é um aplicativo que detecta{' '}
               <ThemedText type="defaultSemiBold">assédio moral</ThemedText>{' '}
               encontrado em uma conversa. Experimente agora acessando a aba{' '}
@@ -61,7 +61,7 @@ export default function HomeScreen() {
           </View>
           <View style={styles.viewScroll}>
             <ThemedText type="subtitle">Contexto</ThemedText>
-            <ThemedText style={styles.textContent}>
+            <ThemedText type='small' style={styles.textContent}>
               Este aplicativo foi desenvolvido para fins acadêmicos. É um
               trabalho da disciplina de{' '}
               <ThemedText type="defaultSemiBold">

@@ -1,45 +1,45 @@
-import { Environment } from '@/environments/environment'
+import { environment } from '@/environments/environment'
 import { AudioDetect } from '@/interfaces/Audio'
 import { HarassmentPhrase } from '@/interfaces/HarassmentPhrase'
+import axiosService from './interceptors/AxiosService'
+import { HttpStatusCode } from 'axios'
 
 export class AudioService {
-  private readonly apiUrl = Environment.apiUrl
+  private readonly apiUrl = environment.apiUrl
 
   async detect(recordCover: any): Promise<boolean> {
-    try {
-      const formData = new FormData()
-      formData.append('record', recordCover)
+    const formData = new FormData()
+    formData.append('record', recordCover)
 
-      const res = await fetch(`${this.apiUrl}/audio/detect`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!res || !res.ok) {
-        return false
+    const res = await axiosService.post(
+      `${this.apiUrl}/audio/detect`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
       }
+    )
 
-      return true
-    } catch (error) {
+    if (!res || res.status != HttpStatusCode.Ok) {
       return false
     }
+
+    return true
   }
 
   async getAll(): Promise<AudioDetect[] | null> {
-    try {
-      const res = await fetch(`${this.apiUrl}/audio`)
+    console.log('getAll')
 
-      if (!res || !res.ok) {
-        return null
-      }
+    const res = await axiosService(`${this.apiUrl}/audio`)
 
-      const data = await res.json()
+    console.log(res.status)
 
-      return data
-    } catch (error) {
-      console.error(error)
+    if (!res || res.status != HttpStatusCode.Ok) {
       return null
     }
+
+    console.log(res.data)
+
+    return res.data
   }
 
   async get(id: number): Promise<AudioDetect | null> {
@@ -80,7 +80,10 @@ export class AudioService {
     }
   }
 
-  async updateHarassmentPhrase(phrase: Omit<HarassmentPhrase, 'phrase'>, id: number): Promise<boolean> {
+  async updateHarassmentPhrase(
+    phrase: Omit<HarassmentPhrase, 'phrase'>,
+    id: number
+  ): Promise<boolean> {
     try {
       const res = await fetch(`${this.apiUrl}/harassment-phrase/${id}`, {
         method: 'PATCH',

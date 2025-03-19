@@ -38,8 +38,12 @@ export class AudioController {
     return this.audioService.save(audio, user.id)
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.User, Role.Admin)
   @Get()
   getAllAudio() {
+    console.log('chegou aqui')
+
     return this.audioService.getAll()
   }
 
