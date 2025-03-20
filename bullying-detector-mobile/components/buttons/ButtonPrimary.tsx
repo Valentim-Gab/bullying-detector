@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   text: {
-    fontSize: RFValue(18),
+    fontSize: RFValue(16),
     color: '#fff',
   }
 })

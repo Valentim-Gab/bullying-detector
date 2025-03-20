@@ -6,8 +6,8 @@ import { useTheme } from '@/hooks/useTheme'
 
 export default function Layout() {
   const { isAuthenticated } = useAuth()
-  const router = useRouter()
   const { colors } = useTheme()
+  const router = useRouter()
 
   useEffect(() => {
     if (isAuthenticated === false) {

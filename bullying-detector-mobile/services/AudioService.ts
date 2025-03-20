@@ -27,17 +27,11 @@ export class AudioService {
   }
 
   async getAll(): Promise<AudioDetect[] | null> {
-    console.log('getAll')
-
     const res = await axiosService(`${this.apiUrl}/audio`)
-
-    console.log(res.status)
 
     if (!res || res.status != HttpStatusCode.Ok) {
       return null
     }
-
-    console.log(res.data)
 
     return res.data
   }

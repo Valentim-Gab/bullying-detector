@@ -15,12 +15,13 @@ import { z } from 'zod'
 import { useTheme } from '@/hooks/useTheme'
 import { Ionicons } from '@expo/vector-icons'
 import { useMutation } from '@tanstack/react-query'
-import { Auth, LoginData } from '@/interfaces/Auth'
+import { AuthToken, LoginData } from '@/interfaces/Auth'
 import { signIn } from '@/services/AuthService'
 import { User } from '@/interfaces/User'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ThemedText } from '@/components/ThemedText'
 import * as SecureStore from 'expo-secure-store'
+import { useAuth } from '@/hooks/useAuth'
 import ButtonPrimary from '@/components/buttons/ButtonPrimary'
 import InputPrimary from '@/components/inputs/InputPrimary'
 import Toast from 'react-native-toast-message'
@@ -37,6 +38,8 @@ export default function LoginScreen() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const { colors } = useTheme()
+  const { isAuthenticated } = useAuth()
   const {
     control,
     handleSubmit,
@@ -48,12 +51,11 @@ export default function LoginScreen() {
       password: '',
     },
   })
-  const { colors } = useTheme()
 
   const loginMutation = useMutation({
     mutationKey: ['login'],
     mutationFn: (loginData: LoginData) => signIn(loginData),
-    onSuccess: (data: { user: User; tokens: Auth }) => {
+    onSuccess: (data: { user: User; tokens: AuthToken }) => {
       Toast.show({
         type: 'success',
         text1: 'Login efetuado com sucesso',
@@ -86,10 +88,16 @@ export default function LoginScreen() {
     setShowPassword(!showPassword)
   }
 
+  useEffect(() => {
+    if (isAuthenticated === true) {
+      router.replace('/(protected)/(tabs)')
+    }
+  }, [isAuthenticated])
+
   return (
     <ThemedSafeView style={styles.container}>
       <Image
-        source={require('@/assets/images/logo.png')}
+        source={require('@/assets/images/logos/logo.png')}
         alt="Logo"
         style={styles.image}
       />
@@ -148,9 +156,9 @@ export default function LoginScreen() {
           icon={
             <Ionicons
               name="log-in-outline"
-              size={RFValue(24)}
+              size={RFValue(20)}
               color="#fff"
-              style={{ marginRight: 8 }}    
+              style={{ marginRight: 8 }}
             />
           }
           onPress={handleSubmit(onSubmit)}
@@ -185,8 +193,8 @@ const styles = StyleSheet.create({
   image: {
     objectFit: 'contain',
     width: '100%',
-    height: 100,
-    marginBottom: 32,
+    height: 120,
+    marginBottom: 16,
   },
   formFieldView: {
     width: '100%',

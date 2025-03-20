@@ -2,6 +2,11 @@
 
 # dependencies
 node_modules/
+*.log
+*.tmp
+/android/.gradle/
+/ios/Pods/
+
 
 # Expo
 .expo/

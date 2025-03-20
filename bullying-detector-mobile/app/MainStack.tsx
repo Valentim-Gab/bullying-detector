@@ -1,12 +1,15 @@
 import { useTheme } from '@/hooks/useTheme'
 import { Stack } from 'expo-router'
 import * as NavigationBar from 'expo-navigation-bar'
-import { Appearance, View } from 'react-native'
-import React, { useEffect } from 'react'
+import { ActivityIndicator, Appearance, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { ThemeEnum } from '@/enums/ThemeEnum'
+import { useAuth } from '@/hooks/useAuth'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function MainStack() {
   const { colors, isSystemTheme, setSystemTheme } = useTheme()
+  const { isAuthenticated, isLoading } = useAuth()
 
   useEffect(() => {
     NavigationBar.setBackgroundColorAsync(colors.backgroundSecondary)
@@ -28,9 +31,24 @@ export default function MainStack() {
     return () => listener.remove()
   }, [isSystemTheme])
 
+  if (isLoading) {
+    return (
+      <SafeAreaView
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+      </SafeAreaView>
+    )
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <Stack >
+      <Stack initialRouteName={isAuthenticated ? '(protected)' : 'login/index'}>
         <Stack.Screen
           name="login/index"
           options={{

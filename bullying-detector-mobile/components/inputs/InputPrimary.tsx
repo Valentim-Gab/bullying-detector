@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontSize: RFValue(16),
+    fontSize: RFValue(14),
     marginBottom: 8,
   },
   inputContiner: {
