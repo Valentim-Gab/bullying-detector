@@ -42,8 +42,6 @@ export class AudioController {
   @Roles(Role.User, Role.Admin)
   @Get()
   getAllAudio() {
-    console.log('chegou aqui')
-
     return this.audioService.getAll()
   }
 
