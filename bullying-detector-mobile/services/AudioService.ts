@@ -1,8 +1,8 @@
 import { environment } from '@/environments/environment'
 import { AudioDetect } from '@/interfaces/Audio'
 import { HarassmentPhrase } from '@/interfaces/HarassmentPhrase'
-import axiosService from './interceptors/AxiosService'
 import { HttpStatusCode } from 'axios'
+import axiosService from './interceptors/AxiosService'
 
 export class AudioService {
   private readonly apiUrl = environment.apiUrl

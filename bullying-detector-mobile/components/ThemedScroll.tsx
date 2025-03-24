@@ -1,8 +1,8 @@
 import { useTheme } from '@/hooks/useTheme'
-import { ScrollView } from 'react-native'
-import { SafeAreaView, SafeAreaViewProps } from 'react-native-safe-area-context'
+import { ScrollView, ScrollViewProps } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-interface ThemedViewProps extends SafeAreaViewProps {
+interface ThemedViewProps extends ScrollViewProps {
   lightColor?: string
   darkColor?: string
 }

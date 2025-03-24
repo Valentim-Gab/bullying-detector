@@ -1,5 +1,5 @@
 import { ThemedSafeView } from '@/components/ThemedSafeView'
-import { useRouter } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import {
   View,
   Text,
@@ -14,14 +14,14 @@ import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useTheme } from '@/hooks/useTheme'
 import { Ionicons } from '@expo/vector-icons'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AuthToken, LoginData } from '@/interfaces/Auth'
 import { signIn } from '@/services/AuthService'
 import { User } from '@/interfaces/User'
 import { useEffect, useState } from 'react'
 import { ThemedText } from '@/components/ThemedText'
-import * as SecureStore from 'expo-secure-store'
 import { useAuth } from '@/hooks/useAuth'
+import * as SecureStore from 'expo-secure-store'
 import ButtonPrimary from '@/components/buttons/ButtonPrimary'
 import InputPrimary from '@/components/inputs/InputPrimary'
 import Toast from 'react-native-toast-message'
@@ -40,6 +40,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false)
   const { colors } = useTheme()
   const { isAuthenticated } = useAuth()
+  const queryClient = useQueryClient()
   const {
     control,
     handleSubmit,
@@ -87,6 +88,10 @@ export default function LoginScreen() {
   const handleShowPassword = () => {
     setShowPassword(!showPassword)
   }
+
+  useFocusEffect(() => {
+    queryClient.clear()
+  })
 
   useEffect(() => {
     if (isAuthenticated === true) {

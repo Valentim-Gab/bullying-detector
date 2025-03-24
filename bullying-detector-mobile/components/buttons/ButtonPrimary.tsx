@@ -1,5 +1,11 @@
 import React, { useRef } from 'react'
-import { Animated, Pressable, PressableProps, StyleSheet } from 'react-native'
+import {
+  Animated,
+  Pressable,
+  PressableProps,
+  StyleSheet,
+  ViewProps,
+} from 'react-native'
 import { ThemedText } from '../ThemedText'
 import { useTheme } from '@/hooks/useTheme'
 import { RFValue } from 'react-native-responsive-fontsize'
@@ -11,6 +17,7 @@ interface ButtonPrimaryProps extends PressableProps {
   disabled?: boolean
   icon?: React.ReactNode
   children?: React.ReactNode
+  dense?: boolean
 }
 
 export default function ButtonPrimary(props: ButtonPrimaryProps) {
@@ -43,13 +50,12 @@ export default function ButtonPrimary(props: ButtonPrimaryProps) {
           styles.animatedView,
           { backgroundColor: colors.primary },
           { transform: [{ scale: scaleValue }] },
+          props.dense && styles.dense,
         ]}
       >
         {props.icon && props.icon}
         {props.title && (
-          <ThemedText style={styles.text}>
-            {props.title}
-          </ThemedText>
+          <ThemedText style={styles.text}>{props.title}</ThemedText>
         )}
         {props.children && props.children}
       </Animated.View>
@@ -77,5 +83,9 @@ const styles = StyleSheet.create({
   text: {
     fontSize: RFValue(16),
     color: '#fff',
-  }
+  },
+  dense: {
+    height: 48,
+    paddingVertical: 8,
+  },
 })

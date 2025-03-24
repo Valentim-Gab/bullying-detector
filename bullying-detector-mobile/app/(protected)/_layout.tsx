@@ -3,14 +3,17 @@ import { Stack, useRouter } from 'expo-router'
 import { ActivityIndicator, View } from 'react-native'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function Layout() {
   const { isAuthenticated } = useAuth()
   const { colors } = useTheme()
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     if (isAuthenticated === false) {
+      queryClient.clear()
       router.replace('/login')
     }
   }, [isAuthenticated])
@@ -37,6 +40,7 @@ export default function Layout() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="(modals)/modal-detect/[id]"
         options={{

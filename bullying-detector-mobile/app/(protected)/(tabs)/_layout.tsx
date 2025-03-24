@@ -50,12 +50,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="config/index"
+        name="profile/index"
         options={{
-          title: 'Configurar',
+          title: 'Perfil',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
-              name={focused ? 'settings' : 'settings-outline'}
+              name={focused ? 'person' : 'person-outline'}
               color={color}
               size={24}
             />

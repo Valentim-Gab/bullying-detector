@@ -42,8 +42,6 @@ export async function signOut() {
 export async function checkAuth(): Promise<boolean> {
   const res = await axiosService.head('/check')
 
-  console.log('checkAuth', res.status)
-
   if (!res || res.status != HttpStatusCode.Ok) {
     return false
   }
