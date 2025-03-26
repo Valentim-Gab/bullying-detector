@@ -12,6 +12,7 @@ export default function Layout() {
   const queryClient = useQueryClient()
 
   useEffect(() => {
+
     if (isAuthenticated === false) {
       queryClient.clear()
       router.replace('/login')

@@ -89,10 +89,6 @@ export default function LoginScreen() {
     setShowPassword(!showPassword)
   }
 
-  useFocusEffect(() => {
-    queryClient.clear()
-  })
-
   useEffect(() => {
     if (isAuthenticated === true) {
       router.replace('/(protected)/(tabs)')

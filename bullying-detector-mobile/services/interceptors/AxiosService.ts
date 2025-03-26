@@ -4,8 +4,7 @@ import { AuthToken } from '@/interfaces/Auth'
 import axios, { HttpStatusCode } from 'axios'
 import * as SecureStore from 'expo-secure-store'
 import Toast from 'react-native-toast-message'
-import { useQueryClient } from '@tanstack/react-query'
-import { useUserStore } from '@/stores/useUserStore'
+import { getGlobalQueryClient } from '@/utils/queryUtil'
 
 const axiosService = axios.create({
   baseURL: environment.apiUrl,
@@ -51,7 +50,7 @@ axiosService.interceptors.response.use(
 
           if (!res || res.status !== HttpStatusCode.Created) {
             expireSession()
-            
+
             return Promise.reject(error)
           }
 
@@ -83,6 +82,9 @@ const expireSession = () => {
   })
   SecureStore.deleteItemAsync('access_token')
   SecureStore.deleteItemAsync('refresh_token')
+
+  const queryClient = getGlobalQueryClient()
+  queryClient.clear()
 
   router.replace('/login')
 }

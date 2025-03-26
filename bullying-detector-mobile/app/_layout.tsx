@@ -1,14 +1,13 @@
 import { useFonts } from 'expo-font'
 import { useEffect } from 'react'
 import { ThemeProvider } from '@/contexts/ThemeContext'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import * as SplashScreen from 'expo-splash-screen'
 import 'react-native-reanimated'
+import { getGlobalQueryClient } from '@/utils/queryUtil'
 import Toast from 'react-native-toast-message'
 import ThemedStatusBar from '@/components/ThemedStatusBar'
 import MainStack from './MainStack'
-
-const queryClient = new QueryClient()
 
 SplashScreen.preventAutoHideAsync()
 
@@ -28,11 +27,11 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={getGlobalQueryClient()}>
       <ThemeProvider>
         <ThemedStatusBar />
         <MainStack />
-        <Toast  />
+        <Toast />
       </ThemeProvider>
     </QueryClientProvider>
   )
