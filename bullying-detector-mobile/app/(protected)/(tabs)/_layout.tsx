@@ -19,7 +19,7 @@ export default function TabLayout() {
         },
         tabBarLabelStyle: {
           marginLeft: 16,
-          fontSize: 16,
+          fontSize: 14,
         },
       }}
     >
@@ -43,6 +43,19 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? 'recording' : 'recording-outline'}
+              color={color}
+              size={24}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="avaliation"
+        options={{
+          title: 'UFSM',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? 'school' : 'school-outline'}
               color={color}
               size={24}
             />

@@ -50,12 +50,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   title: {
-    fontSize: RFValue(32),
+    fontSize: RFValue(24),
     fontWeight: 'bold',
-    lineHeight: RFValue(32),
+    lineHeight: RFValue(24),
   },
   subtitle: {
-    fontSize: RFValue(20),
+    fontSize: RFValue(18),
     fontWeight: 'bold',
   },
   link: {

@@ -156,7 +156,7 @@ export default function RecordScreen() {
   return (
     <ThemedSafeView style={styles.container}>
       <View style={styles.viewRecord}>
-        <ThemedText type="subtitle">Gravar conversa</ThemedText>
+        <ThemedText type="title">Gravar conversa</ThemedText>
         <ThemedText>
           Ao finalizar a gravação, será realizado um processamento para detectar
           se houve assédio moral
