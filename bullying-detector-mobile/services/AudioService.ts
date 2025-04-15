@@ -26,6 +26,22 @@ export class AudioService {
     return true
   }
 
+  async detectText(text: string): Promise<boolean> {
+    console.log(text)
+
+    const res = await axiosService.post(`${this.apiUrl}/audio/detect/text`, {
+      text,
+    })
+
+    console.log(res.data)
+
+    if (!res || res.status != HttpStatusCode.Ok) {
+      return false
+    }
+
+    return true
+  }
+
   async getAll(): Promise<AudioDetect[] | null> {
     const res = await axiosService(`${this.apiUrl}/audio`)
 

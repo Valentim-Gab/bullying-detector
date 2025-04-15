@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -35,7 +36,17 @@ export class AudioController {
     @UploadedFile() audio: Express.Multer.File,
     @ReqUser() user: Users,
   ) {
-    return this.audioService.save(audio, user.id)
+    return this.audioService.saveFile(audio, user.id)
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.User, Role.Admin)
+  @Post('detect/text')
+  detectMoralHarassmentText(
+    @Body('text') text: string,
+    @ReqUser() user: Users,
+  ) {
+    return this.audioService.save(text, user.id)
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

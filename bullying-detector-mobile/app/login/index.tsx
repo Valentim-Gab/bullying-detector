@@ -1,5 +1,5 @@
 import { ThemedSafeView } from '@/components/ThemedSafeView'
-import { useFocusEffect, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import {
   View,
   Text,

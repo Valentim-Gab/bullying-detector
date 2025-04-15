@@ -9,7 +9,6 @@ import {
 import { ThemedText } from '../ThemedText'
 import { useTheme } from '@/hooks/useTheme'
 import { RFValue } from 'react-native-responsive-fontsize'
-import { Ionicons } from '@expo/vector-icons'
 
 interface ButtonPrimaryProps extends PressableProps {
   title?: string
@@ -18,6 +17,7 @@ interface ButtonPrimaryProps extends PressableProps {
   icon?: React.ReactNode
   children?: React.ReactNode
   dense?: boolean
+  round?: boolean
 }
 
 export default function ButtonPrimary(props: ButtonPrimaryProps) {
@@ -43,7 +43,6 @@ export default function ButtonPrimary(props: ButtonPrimaryProps) {
       {...props}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[styles.button]}
     >
       <Animated.View
         style={[
@@ -51,6 +50,7 @@ export default function ButtonPrimary(props: ButtonPrimaryProps) {
           { backgroundColor: colors.primary },
           { transform: [{ scale: scaleValue }] },
           props.dense && styles.dense,
+          props.round && styles.round,
         ]}
       >
         {props.icon && props.icon}
@@ -64,9 +64,6 @@ export default function ButtonPrimary(props: ButtonPrimaryProps) {
 }
 
 const styles = StyleSheet.create({
-  button: {
-    width: '100%',
-  },
   animatedView: {
     padding: 16,
     flexDirection: 'row',
@@ -88,4 +85,10 @@ const styles = StyleSheet.create({
     height: 48,
     paddingVertical: 8,
   },
+  round: {
+    borderRadius: 999,
+    aspectRatio: 1,
+    padding: 0,
+    height: 48,
+  }
 })

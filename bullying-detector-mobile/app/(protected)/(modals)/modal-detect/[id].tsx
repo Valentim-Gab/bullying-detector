@@ -17,9 +17,9 @@ import { AudioService } from '@/services/AudioService'
 import { AudioDetect } from '@/interfaces/Audio'
 import { ScrollView } from 'react-native'
 import { Audio } from 'expo-av'
-import { Environment } from '@/environments/environment'
 import { useTheme } from '@/hooks/useTheme'
 import Skeleton from 'expo-skeleton-component'
+import { environment } from '@/environments/environment'
 
 export default function ModalDetectScreen() {
   const navigation = useNavigation()
@@ -149,7 +149,7 @@ export default function ModalDetectScreen() {
   async function playSound(filename: string) {
     const { sound: playbackObject } = await Audio.Sound.createAsync(
       {
-        uri: `${Environment.apiUrl}/audio/download/${filename}`,
+        uri: `${environment.apiUrl}/audio/download/${filename}`,
       },
       { shouldPlay: true }
     )
@@ -185,7 +185,7 @@ export default function ModalDetectScreen() {
                 <ThemedText style={{ fontWeight: 'bold' }}>
                   Texto gerado:
                 </ThemedText>
-                {audio && (
+                {audio && audio.recordingAudio && (
                   <Pressable
                     style={[
                       styles.btnPlayRecord,

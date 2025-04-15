@@ -1,15 +1,19 @@
 import { ThemedSafeView } from '@/components/ThemedSafeView'
 import { ThemedText } from '@/components/ThemedText'
-import { FlatList, StyleSheet, View, RefreshControl } from 'react-native'
-import React from 'react'
 import { useTheme } from '@/hooks/useTheme'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AvaliationService } from '@/services/AvaliationService'
+import { FlatList, StyleSheet, View, RefreshControl, Image } from 'react-native'
+import React from 'react'
+import ButtonPrimary from '@/components/buttons/ButtonPrimary'
+import { AudioService } from '@/services/AudioService'
 
 export default function AvaliationScreen() {
   const { colors } = useTheme()
   const queryClient = useQueryClient()
   const avaliationService = new AvaliationService()
+  const audioService = new AudioService()
+  const logoMarkWhite = require('@/assets/images/logos/logomark-white.png')
 
   const { data: avaliations, isLoading } = useQuery({
     queryKey: ['get_avaliations'],
@@ -17,7 +21,15 @@ export default function AvaliationScreen() {
     retry: false,
   })
 
-  // Função de refresh
+  const detectMutation = useMutation({
+    mutationKey: ['detect_audio'],
+    mutationFn: (text: string) => audioService.detectText(text),
+  })
+
+  const handleDetect = (text: string) => {
+    detectMutation.mutateAsync(text)
+  }
+
   const handleRefresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['get_avaliations'] })
   }
@@ -34,7 +46,18 @@ export default function AvaliationScreen() {
               index == 0 && { borderTopWidth: 1 },
             ]}
           >
-            <ThemedText>{item.mainText}</ThemedText>
+            <ThemedText style={{ flex: 1 }}>{item.mainText}</ThemedText>
+            <ButtonPrimary
+              icon={
+                <Image
+                  source={logoMarkWhite}
+                  alt="Logo"
+                  style={{ width: 38, height: 38 }}
+                />
+              }
+              round
+              onPress={() => handleDetect(item.mainText)}
+            />
           </View>
         )}
         keyExtractor={(item) => `${item.idAvaliation}`}
@@ -46,7 +69,6 @@ export default function AvaliationScreen() {
         ListEmptyComponent={() => (
           <ThemedText>Nenhuma avaliação encontrada</ThemedText>
         )}
-        // Cabeçalho para incluir a parte fixa (UFSM e subtítulo)
         ListHeaderComponent={
           <View style={styles.titleSection}>
             <ThemedText type="title">UFSM</ThemedText>
@@ -74,6 +96,8 @@ const styles = StyleSheet.create({
   listItem: {
     borderBottomWidth: 1,
     paddingVertical: 16,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
   },
 })

@@ -26,16 +26,14 @@ export class AudioService {
     return transcribedText
   }
 
-  async save(file: Express.Multer.File, idUser) {
-    const filename = await this.fileUtil.save(file, 'record')
-    const transcribedText = await this.transcribeAudio(filename)
-    const databaseResult = await this.detectDatabase(transcribedText)
-    const similarityResult = await this.detectSimilarity(transcribedText)
-    const mistralResult = null // await this.detectMistral(transcribedText)
-    const cohereResult = null // await this.detectCohere(transcribedText)
+  async save(mainText: string, idUser: number, filename?: string) {
+    const databaseResult = await this.detectDatabase(mainText)
+    const similarityResult = await this.detectSimilarity(mainText)
+    const mistralResult = null // await this.detectMistral(mainText)
+    const cohereResult = null // await this.detectCohere(mainText)
     const newDetection: Omit<Detection, 'idDetection'> = {
-      recordingAudio: filename,
-      mainText: transcribedText,
+      recordingAudio: filename ?? '',
+      mainText: mainText,
       mistralResult: mistralResult?.detected ?? false,
       mistralMessage: mistralResult?.message ?? '',
       cohereResult: cohereResult?.detected ?? false,
@@ -59,6 +57,13 @@ export class AudioService {
         return detection
       },
     )
+  }
+
+  async saveFile(file: Express.Multer.File, idUser: number) {
+    const filename = await this.fileUtil.save(file, 'record')
+    const transcribedText = await this.transcribeAudio(filename)
+
+    return this.save(transcribedText, idUser, filename)
   }
 
   async getAll() {
