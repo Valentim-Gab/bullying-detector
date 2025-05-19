@@ -19,27 +19,33 @@ model Users {
   avatar        String?
   verifiedEmail Boolean?    @default(false) @map("verified_email")
   detection     Detection[]
+  vote          vote[]
 
   @@map("users")
 }
 
 model Detection {
   idDetection          Int             @id @default(autoincrement()) @map("id_detection")
-  recordingAudio       String          @map("recording_audio")
+  recordingAudio       String?         @map("recording_audio")
   mainText             String          @map("main_text")
-  mistralResult        Boolean?        @map("mistral_result")
+  context              String?         @db.VarChar(255)
+  mistralResult        Float?          @map("mistral_result")
   mistralMessage       String?         @map("mistral_message") @db.VarChar(255)
-  cohereResult         Boolean?        @map("cohere_result")
+  cohereResult         Float?          @map("cohere_result")
   cohereMessage        String?         @map("cohere_message") @db.VarChar(255)
-  databaseResult       Boolean?        @map("database_result")
+  databaseResult       Float?          @map("database_result")
   databaseUserDetect   Boolean?        @default(false) @map("database_user_detect")
-  databaseUsersApprove Int[]           @map("database_users_approve")
-  databaseUsersReject  Int[]           @map("database_users_reject")
-  similarityResult     Boolean?        @map("similarity_result")
+  databaseUsersApprove Int?            @map("database_users_approve")
+  databaseUsersReject  Int?            @map("database_users_reject")
+  similarityResult     Float?          @map("similarity_result")
+  avaliation           Float?
   idUser               Int?            @map("id_user")
   idPhrase             Int?            @map("id_phrase")
+  externalModule       String?         @map("external_module") @db.VarChar(50)
+  externalId           Int?            @map("external_id")
   bullyingPhrase       bullyingPhrase? @relation(fields: [idPhrase], references: [idPhrase], onDelete: NoAction, onUpdate: NoAction)
   users                Users?          @relation(fields: [idUser], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vote                 vote[]
 
   @@map("detection")
 }
@@ -52,4 +58,13 @@ model bullyingPhrase {
   detection  Detection[]
 
   @@map("bullying_phrase")
+}
+
+model vote {
+  idVote      Int        @id @default(autoincrement()) @map("id_vote")
+  userId      Int?       @map("user_id")
+  detectionId Int?       @map("detection_id")
+  vote        Boolean?
+  detection   Detection? @relation(fields: [detectionId], references: [idDetection], onDelete: NoAction, onUpdate: NoAction)
+  users       Users?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

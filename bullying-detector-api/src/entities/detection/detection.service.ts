@@ -9,9 +9,10 @@ import { firstValueFrom } from 'rxjs'
 import { HttpStatusCode } from 'axios'
 import { Response } from 'express'
 import { SimpleDetection } from 'src/interfaces/detection.interface'
+import { DetectionBaseDto } from './dto/detection-base-dto'
 
 @Injectable()
-export class AudioService {
+export class DetectionService {
   constructor(
     private fileUtil: FileUtil,
     private prisma: PrismaService,
@@ -26,25 +27,35 @@ export class AudioService {
     return transcribedText
   }
 
-  async save(mainText: string, idUser: number, filename?: string) {
-    const databaseResult = await this.detectDatabase(mainText)
-    const similarityResult = await this.detectSimilarity(mainText)
+  async save(detection: DetectionBaseDto, idUser: number, filename?: string) {
+    const databaseResult = await this.detectDatabase(detection.text)
+    const similarityResult = await this.detectSimilarity(detection.context)
     const mistralResult = null // await this.detectMistral(mainText)
     const cohereResult = null // await this.detectCohere(mainText)
+    const avaliation =
+      mistralResult.avaliation +
+      cohereResult +
+      databaseResult.avaliation +
+      similarityResult.avaliation
+
     const newDetection: Omit<Detection, 'idDetection'> = {
       recordingAudio: filename ?? '',
-      mainText: mainText,
-      mistralResult: mistralResult?.detected ?? false,
-      mistralMessage: mistralResult?.message ?? '',
-      cohereResult: cohereResult?.detected ?? false,
-      cohereMessage: cohereResult?.message ?? '',
-      databaseResult: databaseResult.databaseResult ?? false,
+      mainText: detection.text,
+      context: detection.context,
+      mistralResult: mistralResult?.avaliatiion,
+      mistralMessage: mistralResult?.message,
+      cohereResult: cohereResult?.avaliatiion,
+      cohereMessage: cohereResult?.message,
+      databaseResult: databaseResult.avaliation,
       databaseUserDetect: databaseResult.databaseUserDetect,
-      databaseUsersApprove: [],
-      databaseUsersReject: [],
-      similarityResult: similarityResult.detected ?? false,
+      databaseUsersApprove: null,
+      databaseUsersReject: null,
+      similarityResult: similarityResult.avaliation,
+      avaliation: avaliation,
       idPhrase: databaseResult.idPhrase ?? null,
       idUser: idUser,
+      externalId: detection.externalId,
+      externalModule: detection.externalModule,
     }
 
     return this.prismaUtil.performOperation(
@@ -62,8 +73,11 @@ export class AudioService {
   async saveFile(file: Express.Multer.File, idUser: number) {
     const filename = await this.fileUtil.save(file, 'record')
     const transcribedText = await this.transcribeAudio(filename)
+    const detection = {
+      text: transcribedText,
+    }
 
-    return this.save(transcribedText, idUser, filename)
+    return this.save(detection, idUser, filename)
   }
 
   async getAll() {
@@ -108,9 +122,11 @@ export class AudioService {
     `
 
     return {
-      databaseResult: result[0]?.bullying_Phrase ?? false,
+      detected: result[0]?.bullying_Phrase ?? false,
+      avaliation:
+        result[0]?.bullying_Phrase || result[0]?.user_detect ? 0.5 : 0,
       databaseUserDetect: result[0]?.user_detect ?? null,
-      idPhrase: result[0]?.id_phrase ?? null,
+      idPhrase: result[0]?.id_phrase,
     }
   }
 
@@ -130,8 +146,15 @@ export class AudioService {
     }
   }
 
-  async detectMistral(text: string): Promise<SimpleDetection | null> {
-    const url = `${this.config.get('detectApiUrl')}/detect/mistral/text?text_input=${encodeURIComponent(text)}`
+  async detectMistral(
+    text: string,
+    context?: string,
+  ): Promise<SimpleDetection | null> {
+    let url = `${this.config.get('detectApiUrl')}/detect/mistral/text?text_input=${encodeURIComponent(text)}`
+
+    if (context) {
+      url += `&context_input=${encodeURIComponent(context)}`
+    }
 
     try {
       const res = await firstValueFrom(this.httpService.get(url))
@@ -146,8 +169,15 @@ export class AudioService {
     }
   }
 
-  async detectCohere(text: string): Promise<SimpleDetection | null> {
-    const url = `${this.config.get('detectApiUrl')}/detect/cohere/text?text_input=${encodeURIComponent(text)}`
+  async detectCohere(
+    text: string,
+    context?: string,
+  ): Promise<SimpleDetection | null> {
+    let url = `${this.config.get('detectApiUrl')}/detect/cohere/text?text_input=${encodeURIComponent(text)}`
+
+    if (context) {
+      url += `&context_input=${encodeURIComponent(context)}`
+    }
 
     try {
       const res = await firstValueFrom(this.httpService.get(url))
@@ -173,42 +203,37 @@ export class AudioService {
     }
   }
 
-  async addVote(
+  async updateVote(
+    voteApprove: number,
+    voteReject: number,
     idDetection: number,
-    idPhrase: number,
-    approve: boolean,
-    idUser: number,
   ) {
-    const detection = await this.prisma.detection.findUnique({
-      where: { idDetection: idDetection },
-    })
+    const detection = await this.getOne(idDetection)
 
     if (!detection) {
-      throw new Error('Detecção não encontrada.')
+      throw new BadRequestException('Detecção não encontrada')
     }
 
-    const data: Partial<Detection> = {
-      databaseResult: true,
-      databaseUserDetect: true,
-      idPhrase: idPhrase,
-      databaseUsersApprove: approve
-        ? [...(detection.databaseUsersApprove || []), idUser]
-        : detection.databaseUsersApprove,
-      databaseUsersReject: !approve
-        ? [...(detection.databaseUsersReject || []), idUser]
-        : detection.databaseUsersReject,
-    }
-
-    return this.prismaUtil.performOperation(
-      'Não foi possível realizar a detecção',
-      async () => {
-        const updatedDetection = await this.prisma.detection.update({
-          data: data,
-          where: { idDetection: idDetection },
-        })
-
-        return updatedDetection
-      },
+    const newApprove = Math.max(
+      (detection.databaseUsersApprove ?? 0) + voteApprove,
+      0,
     )
+    const newReject = Math.max(
+      (detection.databaseUsersReject ?? 0) + voteReject,
+      0,
+    )
+
+    detection.databaseUsersApprove = newApprove
+    detection.databaseUsersReject = newReject
+    detection.databaseUserDetect = newApprove > 0 || newReject > 0
+
+    return this.prisma.detection.update({
+      where: { idDetection },
+      data: {
+        databaseUsersApprove: detection.databaseUsersApprove,
+        databaseUsersReject: detection.databaseUsersReject,
+        databaseUserDetect: detection.databaseUserDetect,
+      },
+    })
   }
 }

@@ -1,5 +1,6 @@
 import cohere
 from fastapi.responses import JSONResponse
+from fastapi import Query
 from app.main import app
 from dotenv import load_dotenv
 import os
@@ -11,26 +12,46 @@ co = cohere.ClientV2(cohere_key)
 
 
 @app.get('/detect/cohere/text')
-async def detect_harassment_mistral_text(text_input):
+async def detect_bullying_cohere_text(
+        text_input: str = Query(..., description="Texto a ser analisado"),
+        context: str = Query(None, description="Contexto opcional"),
+):
+    message = (f"Detecte se na seguinte frase há algum tipo de ofensa, bullying ou assédio moral."
+               f" Avalie de 0 a 5 a intensidade da ofensa na frase. Justifique resumidamente.")
+
+    if context:
+        message = f"{message} Contexto da frase: {context}."
+
+    message = (f"{message} Estrutura da sua resposta: [Nota - Justificativa], exemplo: '3.8 - Há ofensa porque...'."
+               f" Frase: {text_input}")
+
     res = co.chat(
         model="command-r-plus",
         messages=[
             {
                 "role": "user",
-                "content": f"Detecte se na seguinte frase há assédio moral e responda apenas 'True' ou 'False'. "
-                           f"Justifique resumidamente. Frase: {text_input}"
+                "content": message
             }
         ]
     )
 
-    if not res:
+    if not res or not res.message or not res.message.content:
         return JSONResponse(content={"detected": False})
 
-    message = res.message.content[0].text
-    split_msg = message.removeprefix('True. ')
-    result = False
+    try:
+        full_response = res.message.content[0].text.strip()
+        avaliation_str, justification = full_response.split(' - ', 1)
+        avaliation = float(avaliation_str.strip())
+    except Exception as e:
+        print(e)
+        return JSONResponse(
+            content={"detected": False}
+        )
 
-    if message:
-        result = str(message).startswith('True')
-
-    return JSONResponse(content={"detected": result, "message": split_msg})
+    return JSONResponse(
+        content={
+            "detected": True,
+            "avaliation": avaliation,
+            "justification": justification.strip()
+        }
+    )

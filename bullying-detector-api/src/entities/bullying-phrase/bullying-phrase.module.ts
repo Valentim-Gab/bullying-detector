@@ -3,10 +3,10 @@ import { PrismaService } from 'nestjs-prisma'
 import { PrismaUtil } from 'src/utils/prisma.util'
 import { BullyingPhraseController } from './bullying-phrase.controller'
 import { BullyingPhraseService } from './bullying-phrase.service'
-import { AudioModule } from '../audio/audio.module'
+import { DetectionModule } from '../detection/detection.module'
 
 @Module({
-  imports: [AudioModule],
+  imports: [DetectionModule],
   controllers: [BullyingPhraseController],
   providers: [BullyingPhraseService, PrismaService, PrismaUtil],
   exports: [BullyingPhraseService],

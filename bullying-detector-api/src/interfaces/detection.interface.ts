@@ -1,6 +1,7 @@
-import { Detection } from '@prisma/client'
-
-export interface SimpleDetection extends Partial<Detection> {
-  detected?: boolean
+export interface SimpleDetection {
+  detected: boolean
+  avaliation: number
   message?: string
+  idPhrase?: number
+  databaseUserDetect?: boolean | null
 }
