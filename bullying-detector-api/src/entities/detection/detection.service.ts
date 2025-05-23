@@ -28,29 +28,68 @@ export class DetectionService {
   }
 
   async save(detection: DetectionBaseDto, idUser: number, filename?: string) {
+    console.log('detection', detection)
     const databaseResult = await this.detectDatabase(detection.text)
-    const similarityResult = await this.detectSimilarity(detection.context)
-    const mistralResult = null // await this.detectMistral(mainText)
-    const cohereResult = null // await this.detectCohere(mainText)
-    const avaliation =
-      mistralResult.avaliation +
-      cohereResult +
-      databaseResult.avaliation +
-      similarityResult.avaliation
+    console.log('databaseResult', databaseResult)
+    const similarityResult = await this.detectSimilarity(detection.text)
+    console.log('similarityResult', similarityResult)
+
+    const mistralResult = await this.detectMistral(
+      detection.text,
+      detection.context,
+    )
+    const cohereResult = await this.detectCohere(
+      detection.text,
+      detection.context,
+    )
+    const deepSeekResult = await this.detectDeepSeek(
+      detection.text,
+      detection.context,
+    )
+
+    // const mistralResult = null
+    // const cohereResult = null
+    // const deepSeekResult = null
+
+    console.log('mistralResult', mistralResult)
+    console.log('cohereResult', cohereResult)
+    console.log('deepSeekResult', deepSeekResult)
+
+    // Cria array com IA que retornaram resultado
+    const iaResults = [mistralResult, cohereResult, deepSeekResult].filter(
+      (r) => r && r.detected === true,
+    )
+
+    // Se não detectou nenhuma IA, média = 0
+    const iaAverage =
+      iaResults.length > 0
+        ? iaResults.reduce((acc, curr) => acc + (curr.avaliation ?? 0), 0) /
+          iaResults.length
+        : 0
+
+    // Extras
+    const database = databaseResult?.avaliation ?? 0
+    const similarity = similarityResult?.avaliation ?? 0
+    const extras = database + similarity
+
+    // Limita máximo em 5
+    const avaliation = Math.min(iaAverage + extras, 5)
 
     const newDetection: Omit<Detection, 'idDetection'> = {
-      recordingAudio: filename ?? '',
+      recordingAudio: filename,
       mainText: detection.text,
       context: detection.context,
-      mistralResult: mistralResult?.avaliatiion,
+      mistralResult: mistralResult?.avaliation ?? null,
       mistralMessage: mistralResult?.message,
-      cohereResult: cohereResult?.avaliatiion,
+      cohereResult: cohereResult?.avaliation ?? null,
       cohereMessage: cohereResult?.message,
-      databaseResult: databaseResult.avaliation,
+      deepseek_result: deepSeekResult?.avaliation ?? null,
+      deepseek_message: deepSeekResult?.message,
+      databaseResult: databaseResult.avaliation ?? null,
       databaseUserDetect: databaseResult.databaseUserDetect,
       databaseUsersApprove: null,
       databaseUsersReject: null,
-      similarityResult: similarityResult.avaliation,
+      similarityResult: similarityResult.avaliation ?? null,
       avaliation: avaliation,
       idPhrase: databaseResult.idPhrase ?? null,
       idUser: idUser,
@@ -80,11 +119,21 @@ export class DetectionService {
     return this.save(detection, idUser, filename)
   }
 
-  async getAll() {
+  async findAll(externalModule?: string) {
+    const moduleFilter = externalModule
+      ? {
+          equals: externalModule,
+          mode: 'insensitive' as const,
+        }
+      : null
+
     return this.prismaUtil.performOperation(
       'Não foi possível listar as detecções',
       async () => {
         const detections = await this.prisma.detection.findMany({
+          where: {
+            externalModule: moduleFilter,
+          },
           orderBy: { idDetection: 'desc' },
         })
 
@@ -93,12 +142,31 @@ export class DetectionService {
     )
   }
 
-  async getOne(id: number) {
+  async findById(id: number) {
     return this.prismaUtil.performOperation(
       'Não foi possível encontrar a detecção',
       async () => {
         const detection = await this.prisma.detection.findUnique({
           where: { idDetection: id },
+        })
+
+        return detection
+      },
+    )
+  }
+
+  async findByExternal(externalId: number, externalModule: string) {
+    return this.prismaUtil.performOperation(
+      'Não foi possível encontrar a detecção',
+      async () => {
+        const detection = await this.prisma.detection.findFirst({
+          where: {
+            externalId,
+            externalModule: {
+              equals: externalModule,
+              mode: 'insensitive',
+            },
+          },
         })
 
         return detection
@@ -169,6 +237,29 @@ export class DetectionService {
     }
   }
 
+  async detectDeepSeek(
+    text: string,
+    context?: string,
+  ): Promise<SimpleDetection | null> {
+    let url = `${this.config.get('detectApiUrl')}/detect/openrouter/text?text_input=${encodeURIComponent(text)}`
+
+    if (context) {
+      url += `&context_input=${encodeURIComponent(context)}`
+    }
+
+    try {
+      const res = await firstValueFrom(this.httpService.get(url))
+
+      if (!res || res.status != HttpStatusCode.Ok) {
+        return null
+      }
+
+      return res.data
+    } catch (error) {
+      console.error('Erro ao fazer requisição para FastAPI:', error)
+    }
+  }
+
   async detectCohere(
     text: string,
     context?: string,
@@ -208,7 +299,7 @@ export class DetectionService {
     voteReject: number,
     idDetection: number,
   ) {
-    const detection = await this.getOne(idDetection)
+    const detection = await this.findById(idDetection)
 
     if (!detection) {
       throw new BadRequestException('Detecção não encontrada')

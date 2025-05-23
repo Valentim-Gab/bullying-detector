@@ -30,9 +30,9 @@ model Detection {
   mainText             String          @map("main_text")
   context              String?         @db.VarChar(255)
   mistralResult        Float?          @map("mistral_result")
-  mistralMessage       String?         @map("mistral_message") @db.VarChar(255)
+  mistralMessage       String?         @map("mistral_message")
   cohereResult         Float?          @map("cohere_result")
-  cohereMessage        String?         @map("cohere_message") @db.VarChar(255)
+  cohereMessage        String?         @map("cohere_message")
   databaseResult       Float?          @map("database_result")
   databaseUserDetect   Boolean?        @default(false) @map("database_user_detect")
   databaseUsersApprove Int?            @map("database_users_approve")
@@ -43,6 +43,8 @@ model Detection {
   idPhrase             Int?            @map("id_phrase")
   externalModule       String?         @map("external_module") @db.VarChar(50)
   externalId           Int?            @map("external_id")
+  deepseek_result      Int?
+  deepseek_message     String?
   bullyingPhrase       bullyingPhrase? @relation(fields: [idPhrase], references: [idPhrase], onDelete: NoAction, onUpdate: NoAction)
   users                Users?          @relation(fields: [idUser], references: [id], onDelete: NoAction, onUpdate: NoAction)
   vote                 vote[]

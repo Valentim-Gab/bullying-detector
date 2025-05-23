@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   Res,
   UploadedFile,
   UseGuards,
@@ -34,7 +35,7 @@ export class DetectionController {
       limits: { fileSize: 10 * 1024 * 1024 }, // Limite de 10MB
     }),
   )
-  detectMoralHarassment(
+  createAudio(
     @UploadedFile() audio: Express.Multer.File,
     @ReqUser() user: Users,
   ) {
@@ -44,7 +45,7 @@ export class DetectionController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.User, Role.Admin)
   @Post()
-  detectMoralHarassmentText(
+  create(
     @Body(new ValidationPipe()) detection: DetectionBaseDto,
     @ReqUser() user: Users,
   ) {
@@ -54,13 +55,21 @@ export class DetectionController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.User, Role.Admin)
   @Get()
-  getAllAudio() {
-    return this.detectionService.getAll()
+  findAll(@Query('externalModule') externalModule?: string) {
+    return this.detectionService.findAll(externalModule)
   }
 
   @Get(':id')
-  getAudio(@Param('id', ParseIntPipe) id: number) {
-    return this.detectionService.getOne(id)
+  findById(@Param('id', ParseIntPipe) id: number) {
+    return this.detectionService.findById(id)
+  }
+
+  @Get(':module/:id')
+  findByExternal(
+    @Param('id', ParseIntPipe) externalId: number,
+    @Param('module') externalModule: string,
+  ) {
+    return this.detectionService.findByExternal(externalId, externalModule)
   }
 
   @Get('download/:filename')

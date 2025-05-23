@@ -27,7 +27,7 @@ conn = psycopg2.connect(database=db_name, user=db_user, password=db_password, ho
 cur = conn.cursor()
 
 # Buscar frases do banco de dados
-cur.execute("SELECT phrase FROM harassment_phrase")
+cur.execute("SELECT phrase FROM bullying_phrase")
 phrases = [row[0] for row in cur.fetchall()]
 
 
