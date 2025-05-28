@@ -322,7 +322,7 @@ export default function ModalDetectScreen() {
                         </ThemedText>
                       </Pressable>
 
-                      {!detection.recordingAudio && (
+                      {detection.recordingAudio && (
                         <Pressable
                           style={[
                             styles.btnPlayRecord,
@@ -385,7 +385,7 @@ export default function ModalDetectScreen() {
 
             <View style={{ marginTop: 24 }}>
               <ThemedText type="subtitle">
-                Classificações indivisuais
+                Classificações individuais
               </ThemedText>
             </View>
 
@@ -726,7 +726,7 @@ export default function ModalDetectScreen() {
                     }
                   >
                     <ThemedText style={{ color: colors.secondaryLight }}>
-                      Salvar texto como assédio moral
+                      Classificar conteúdo como ofensivo
                     </ThemedText>
                   </Pressable>
                 )}
@@ -815,7 +815,7 @@ export default function ModalDetectScreen() {
               opacity: 1,
               backgroundColor: colors.card,
               borderWidth: 1,
-              borderColor: colors.border,
+              borderColor: colors.mutedStrong,
             }}
           >
             <ThemedText type="subtitle" style={{ marginBottom: 12 }}>

@@ -38,8 +38,12 @@ export class DetectionService {
     return true
   }
 
-  async getAll(): Promise<DetectionData[] | null> {
-    const res = await axiosService(this.apiUrl)
+  async getAll(externalModule?: string): Promise<DetectionData[] | null> {
+    const res = await axiosService(this.apiUrl, {
+      params: {
+        externalModule,
+      }
+    })
 
     if (!res || res.status != HttpStatusCode.Ok) {
       return null

@@ -211,11 +211,11 @@ export default function RecordScreen() {
         >
           {detectionList && detectionList.length > 0 && (
             <ScrollView>
-              {detectionList.map((audio) => (
+              {detectionList.map((detection) => (
                 <Pressable
-                  key={audio.idDetection}
+                  key={detection.idDetection}
                   onPress={() => {
-                    router.push(`/modal-detect/${audio.idDetection}`)
+                    router.push(`/modal-detect/${detection.idDetection}`)
                   }}
                   style={[
                     styles.btnAccess,
@@ -223,9 +223,9 @@ export default function RecordScreen() {
                   ]}
                 >
                   <ThemedText style={styles.btnAccessText}>
-                    {audio.mainText.length > 50
-                      ? `${audio.mainText.substring(0, 50)}...`
-                      : audio.mainText}
+                    {detection.mainText.length > 50
+                      ? `${detection.mainText.substring(0, 50)}...`
+                      : detection.mainText}
                   </ThemedText>
                   <View style={styles.btnAccessIconSection}>
                     <Ionicons
