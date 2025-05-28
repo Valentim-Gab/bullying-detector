@@ -29,8 +29,6 @@ axiosService.interceptors.request.use(
 axiosService.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.error('Axios error:', error)
-
     if (
       error.response &&
       error.response.status === HttpStatusCode.Unauthorized
