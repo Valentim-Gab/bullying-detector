@@ -24,6 +24,8 @@ export class DetectionService {
   async transcribeAudio(filename: string) {
     const transcribedText = await this.fileUtil.transcribeAudio(filename)
 
+    console.log('Transcribed text:', transcribedText)
+
     return transcribedText
   }
 
@@ -34,22 +36,22 @@ export class DetectionService {
     const similarityResult = await this.detectSimilarity(detection.mainText)
     console.log('similarityResult', similarityResult)
 
-    // const mistralResult = await this.detectMistral(
-    //   detection.text,
-    //   detection.context,
-    // )
-    // const cohereResult = await this.detectCohere(
-    //   detection.text,
-    //   detection.context,
-    // )
-    // const deepSeekResult = await this.detectDeepSeek(
-    //   detection.text,
-    //   detection.context,
-    // )
+    const mistralResult = await this.detectMistral(
+      detection.mainText,
+      detection.context,
+    )
+    const cohereResult = await this.detectCohere(
+      detection.mainText,
+      detection.context,
+    )
+    const deepSeekResult = await this.detectDeepSeek(
+      detection.mainText,
+      detection.context,
+    )
 
-    const mistralResult = null
-    const cohereResult = null
-    const deepSeekResult = null
+    // const mistralResult = null
+    // const cohereResult = null
+    // const deepSeekResult = null
 
     console.log('mistralResult', mistralResult)
     console.log('cohereResult', cohereResult)
@@ -89,7 +91,7 @@ export class DetectionService {
       databaseUserDetect: databaseResult.databaseUserDetect,
       databaseUsersApprove: null,
       databaseUsersReject: null,
-      similarityResult: similarityResult.avaliation ?? null,
+      similarityResult: similarityResult?.avaliation ?? null,
       avaliation: avaliation,
       idPhrase: databaseResult.idPhrase ?? null,
       idUser: idUser,

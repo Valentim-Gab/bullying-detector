@@ -278,7 +278,7 @@ export default function ModalDetectScreen() {
                           },
                         ]}
                       >
-                        {detection && detection.avaliation}
+                        {detection && detection.avaliation.toFixed(2)}
                         <ThemedText
                           type="small"
                           style={{ color: colors.mutedForeground }}
