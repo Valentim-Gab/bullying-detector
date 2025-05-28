@@ -1,12 +1,16 @@
-import whisper
+import os
 import sys
+import whisper
 
+# Adicione o caminho do ffmpeg instalado pelo Chocolatey ao PATH do processo
+os.environ["PATH"] += os.pathsep + r"C:\ProgramData\chocolatey\bin"
 audio_path = sys.argv[1]
 model = whisper.load_model("large")
 result = model.transcribe(audio_path, language="pt")
 transcribed_text = result['text']
 
 print(transcribed_text)
+
 
 # pip install openai-whisper
 # pyinstaller --onefile transcribeAudio.py

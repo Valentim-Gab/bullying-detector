@@ -1,15 +1,15 @@
 import { environment } from '@/environments/environment'
-import { HarassmentPhrase } from '@/interfaces/HarassmentPhrase'
 import { HttpStatusCode } from 'axios'
-import axiosService from './interceptors/AxiosService'
 import { DetectionData } from '@/interfaces/Detection'
+import axiosService from './interceptors/AxiosService'
 
 export class DetectionService {
   private readonly apiUrl = `${environment.apiUrl}/detection`
 
   async detectAudio(recordCover: any): Promise<boolean> {
+
     const formData = new FormData()
-    formData.append('record', recordCover)
+    formData.append('audio', recordCover)
 
     const res = await axiosService.post(
       `${this.apiUrl}/audio`,
@@ -19,7 +19,7 @@ export class DetectionService {
       }
     )
 
-    if (!res || res.status != HttpStatusCode.Ok) {
+    if (!res || res.status != HttpStatusCode.Created) {
       return false
     }
 

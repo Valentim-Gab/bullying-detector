@@ -147,15 +147,23 @@ export default function ModalDetectScreen() {
     return databaseResult.UNDETECTED
   }
 
-  async function playSound(filename: string) {
-    const { sound: playbackObject } = await Audio.Sound.createAsync(
-      {
-        uri: `${environment.apiUrl}/audio/download/${filename}`,
-      },
-      { shouldPlay: true }
-    )
+  async function playSound(filename: string | null) {
+    if (!filename) {
+      return
+    }
 
-    await playbackObject.playAsync()
+    try {
+      const { sound: playbackObject } = await Audio.Sound.createAsync(
+        {
+          uri: `${environment.apiUrl}/detection/download/${filename}`,
+        },
+        { shouldPlay: true }
+      )
+
+      await playbackObject.playAsync()
+    } catch (error) {
+      console.error('Erro ao reproduzir áudio:', error)
+    }
   }
 
   const getDetectionCalculation = (detection: DetectionData | null) => {
@@ -328,10 +336,7 @@ export default function ModalDetectScreen() {
                             styles.btnPlayRecord,
                             { borderColor: colors.primary },
                           ]}
-                          onPress={() =>
-                            detection.recordingAudio &&
-                            playSound(detection.recordingAudio)
-                          }
+                          onPress={() => playSound(detection.recordingAudio)}
                         >
                           <Ionicons
                             name="play"

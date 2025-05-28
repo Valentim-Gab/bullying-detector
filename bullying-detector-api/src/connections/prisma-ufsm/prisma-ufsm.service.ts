@@ -9,7 +9,7 @@ export class PrismaUfsmService
   constructor() {
     super({
       datasources: {
-        db: {
+        ufsmDb: {
           url: process.env.UFSM_DATABASE_URL,
         },
       },

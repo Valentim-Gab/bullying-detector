@@ -20,6 +20,8 @@ import { ThemeEnum } from '@/enums/ThemeEnum'
 import { DetectionData } from '@/interfaces/Detection'
 import { DetectionService } from '@/services/DetectionService'
 import * as FileSystem from 'expo-file-system'
+import { RFValue } from 'react-native-responsive-fontsize'
+import Toast from 'react-native-toast-message'
 
 export default function RecordScreen() {
   const detectionService = useMemo(() => new DetectionService(), [])
@@ -93,7 +95,7 @@ export default function RecordScreen() {
       name: 'recording.m4a',
     }
 
-    const result = await transcribeAudio(recordCover)
+    const result = await detect(recordCover)
     // Reproduzir o áudio após parar a gravação
     await playSound(newUri)
     setLoadingDetect(false)
@@ -110,16 +112,24 @@ export default function RecordScreen() {
     await sound.playAsync()
   }
 
-  async function transcribeAudio(recordCover: any) {
+  async function detect(recordCover: any) {
     const times = 4
 
-    let isSuccess = await detectionService.detect(recordCover)
+    let isSuccess = await detectionService.detectAudio(recordCover)
 
     // for (let i = 0; i < times; i++) {
     //   if (!isSuccess) {
     //     isSuccess = await audioService.detect(recordCover)
     //   }
     // }
+
+    if (!isSuccess) {
+      Toast.show({
+        type: 'error',
+        text1: 'Falha ao processar áudio',
+        text1Style: { fontSize: RFValue(14) },
+      })
+    }
 
     return isSuccess
   }

@@ -41,7 +41,7 @@
     "fs-extra": "^11.3.0",
     "jsonwebtoken": "^9.0.2",
     "moral-harassment-detector-api": "file:",
-    "multer": "1.4.5-lts.1",
+    "multer": "2.0.0",
     "nestjs-prisma": "^0.22.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",

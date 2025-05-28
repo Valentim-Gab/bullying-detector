@@ -89,10 +89,12 @@ export default function AvaliationScreen() {
               <Image
                 source={logoMarkWhite}
                 alt="Logo"
-                style={{ width: 38, height: 38 }}
+                style={{ width: 24, height: 24 }}
               />
             }
             round
+            mini
+            noShadow
             onPress={() => handleDetect(item.mainText)}
           />
         </View>

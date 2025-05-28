@@ -59,6 +59,11 @@ export class DetectionController {
     return this.detectionService.findAll(externalModule)
   }
 
+  @Get('download/:filename')
+  downloadAudio(@Param('filename') filename: string, @Res() res: Response) {
+    return this.detectionService.download(filename, res)
+  }
+
   @Get(':id')
   findById(@Param('id', ParseIntPipe) id: number) {
     return this.detectionService.findById(id)
@@ -70,10 +75,5 @@ export class DetectionController {
     @Param('module') externalModule: string,
   ) {
     return this.detectionService.findByExternal(externalId, externalModule)
-  }
-
-  @Get('download/:filename')
-  downloadAudio(@Param('filename') filename: string, @Res() res: Response) {
-    return this.detectionService.download(filename, res)
   }
 }

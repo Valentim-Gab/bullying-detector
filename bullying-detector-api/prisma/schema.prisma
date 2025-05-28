@@ -70,3 +70,5 @@ model vote {
   detection   Detection? @relation(fields: [detectionId], references: [idDetection], onDelete: NoAction, onUpdate: NoAction)
   users       Users?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
+
+// npx prisma db push

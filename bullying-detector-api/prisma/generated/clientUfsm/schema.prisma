@@ -5,7 +5,7 @@ generator clientUfsm {
   output   = "./generated/clientUfsm"
 }
 
-datasource db {
+datasource ufsmDb {
   provider = "postgresql"
   url      = env("UFSM_DATABASE_URL")
 }

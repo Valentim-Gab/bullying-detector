@@ -21,6 +21,9 @@ interface ButtonPrimaryProps extends PressableProps {
   children?: React.ReactNode
   dense?: boolean
   round?: boolean
+  flat?: boolean
+  noShadow?: boolean
+  mini?: boolean
   color?: ColorKeys
 }
 
@@ -53,6 +56,9 @@ export default function ButtonPrimary(props: ButtonPrimaryProps) {
           { transform: [{ scale: scaleValue }] },
           props.dense && styles.dense,
           props.round && styles.round,
+          props.flat && styles.flat,
+          props.noShadow && styles.noShadow,
+          props.mini && styles.mini,
         ]}
       >
         {props.icon && props.icon}
@@ -92,5 +98,25 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     padding: 0,
     height: 48,
+  },
+  mini: {
+    height: 32,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+  },
+  flat: {
+    backgroundColor: 'transparent',
+    elevation: 0,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+  },
+  noShadow: {
+    elevation: 0,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
 })
