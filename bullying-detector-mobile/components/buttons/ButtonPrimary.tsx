@@ -3,12 +3,15 @@ import {
   Animated,
   Pressable,
   PressableProps,
+  StyleProp,
   StyleSheet,
   ViewProps,
 } from 'react-native'
 import { ThemedText } from '../ThemedText'
 import { useTheme } from '@/hooks/useTheme'
 import { RFValue } from 'react-native-responsive-fontsize'
+
+type ColorKeys = keyof ReturnType<typeof useTheme>['colors']
 
 interface ButtonPrimaryProps extends PressableProps {
   title?: string
@@ -18,6 +21,7 @@ interface ButtonPrimaryProps extends PressableProps {
   children?: React.ReactNode
   dense?: boolean
   round?: boolean
+  color?: ColorKeys
 }
 
 export default function ButtonPrimary(props: ButtonPrimaryProps) {
@@ -39,15 +43,13 @@ export default function ButtonPrimary(props: ButtonPrimaryProps) {
   }
 
   return (
-    <Pressable
-      {...props}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-    >
+    <Pressable {...props} onPressIn={handlePressIn} onPressOut={handlePressOut}>
       <Animated.View
         style={[
           styles.animatedView,
-          { backgroundColor: colors.primary },
+          {
+            backgroundColor: props.color ? colors[props.color] : colors.primary,
+          },
           { transform: [{ scale: scaleValue }] },
           props.dense && styles.dense,
           props.round && styles.round,
@@ -90,5 +92,5 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     padding: 0,
     height: 48,
-  }
+  },
 })

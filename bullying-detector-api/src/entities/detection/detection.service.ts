@@ -29,27 +29,27 @@ export class DetectionService {
 
   async save(detection: DetectionBaseDto, idUser: number, filename?: string) {
     console.log('detection', detection)
-    const databaseResult = await this.detectDatabase(detection.text)
+    const databaseResult = await this.detectDatabase(detection.mainText)
     console.log('databaseResult', databaseResult)
-    const similarityResult = await this.detectSimilarity(detection.text)
+    const similarityResult = await this.detectSimilarity(detection.mainText)
     console.log('similarityResult', similarityResult)
 
-    const mistralResult = await this.detectMistral(
-      detection.text,
-      detection.context,
-    )
-    const cohereResult = await this.detectCohere(
-      detection.text,
-      detection.context,
-    )
-    const deepSeekResult = await this.detectDeepSeek(
-      detection.text,
-      detection.context,
-    )
+    // const mistralResult = await this.detectMistral(
+    //   detection.text,
+    //   detection.context,
+    // )
+    // const cohereResult = await this.detectCohere(
+    //   detection.text,
+    //   detection.context,
+    // )
+    // const deepSeekResult = await this.detectDeepSeek(
+    //   detection.text,
+    //   detection.context,
+    // )
 
-    // const mistralResult = null
-    // const cohereResult = null
-    // const deepSeekResult = null
+    const mistralResult = null
+    const cohereResult = null
+    const deepSeekResult = null
 
     console.log('mistralResult', mistralResult)
     console.log('cohereResult', cohereResult)
@@ -77,14 +77,14 @@ export class DetectionService {
 
     const newDetection: Omit<Detection, 'idDetection'> = {
       recordingAudio: filename,
-      mainText: detection.text,
+      mainText: detection.mainText,
       context: detection.context,
       mistralResult: mistralResult?.avaliation ?? null,
       mistralMessage: mistralResult?.message,
       cohereResult: cohereResult?.avaliation ?? null,
       cohereMessage: cohereResult?.message,
-      deepseek_result: deepSeekResult?.avaliation ?? null,
-      deepseek_message: deepSeekResult?.message,
+      deepseekResult: deepSeekResult?.avaliation ?? null,
+      deepseekMessage: deepSeekResult?.message,
       databaseResult: databaseResult.avaliation ?? null,
       databaseUserDetect: databaseResult.databaseUserDetect,
       databaseUsersApprove: null,
@@ -113,7 +113,7 @@ export class DetectionService {
     const filename = await this.fileUtil.save(file, 'record')
     const transcribedText = await this.transcribeAudio(filename)
     const detection = {
-      text: transcribedText,
+      mainText: transcribedText,
     }
 
     return this.save(detection, idUser, filename)

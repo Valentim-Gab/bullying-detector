@@ -3,7 +3,7 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator'
 export class DetectionBaseDto {
   @IsString()
   @IsNotEmpty()
-  text: string
+  mainText: string
 
   @IsOptional()
   @IsString()

@@ -2,8 +2,8 @@ import { ThemedSafeView } from '@/components/ThemedSafeView'
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
 import { Colors } from '@/constants/Colors'
-import { AudioDetect } from '@/interfaces/Audio'
-import { AudioService } from '@/services/AudioService'
+import { AudioDetect } from '@/interfaces/Detection'
+import { AudioService } from '@/services/DetectionService'
 import { useLocalSearchParams } from 'expo-router'
 import {
   ActivityIndicator,

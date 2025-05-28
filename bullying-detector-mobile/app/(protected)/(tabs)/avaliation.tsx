@@ -6,7 +6,7 @@ import { AvaliationService } from '@/services/AvaliationService'
 import { FlatList, StyleSheet, View, RefreshControl, Image } from 'react-native'
 import React from 'react'
 import ButtonPrimary from '@/components/buttons/ButtonPrimary'
-import { AudioService } from '@/services/AudioService'
+import { AudioService } from '@/services/DetectionService'
 
 export default function AvaliationScreen() {
   const { colors } = useTheme()

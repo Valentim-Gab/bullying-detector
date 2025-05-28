@@ -43,8 +43,8 @@ model Detection {
   idPhrase             Int?            @map("id_phrase")
   externalModule       String?         @map("external_module") @db.VarChar(50)
   externalId           Int?            @map("external_id")
-  deepseek_result      Int?
-  deepseek_message     String?
+  deepseekResult       Int?            @map("deepseek_result")
+  deepseekMessage      String?         @map("deepseek_message")
   bullyingPhrase       bullyingPhrase? @relation(fields: [idPhrase], references: [idPhrase], onDelete: NoAction, onUpdate: NoAction)
   users                Users?          @relation(fields: [idUser], references: [id], onDelete: NoAction, onUpdate: NoAction)
   vote                 vote[]

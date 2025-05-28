@@ -6,11 +6,13 @@
 const primary = '#8f3d38'
 const primaryDark = '#8f3d38'
 const secondary = '#632a64'
+const secondaryLight = '#c273c5'
 
 export const Colors = {
   light: {
     primary: primary,
     secondary: secondary,
+    secondaryLight: secondaryLight,
     text: '#11181C',
     background: '#fff',
     backgroundSecondary: '#fff',
@@ -20,6 +22,7 @@ export const Colors = {
     placeholder: '#687076',
     muted: '#f9f9f9',
     mutedStrong: '#ccc',
+    mutedForeground: '#687076',
     card: '#fff',
     cardForeground: '#11181C',
     positive: '#2e7d32',
@@ -30,6 +33,7 @@ export const Colors = {
   dark: {
     primary: primaryDark,
     secondary: secondary,
+    secondaryLight: secondaryLight,
     text: '#ECEDEE',
     background: '#0E0E0E',
     backgroundSecondary: '#090909',
@@ -39,6 +43,7 @@ export const Colors = {
     placeholder: '#9BA1A6',
     muted: '#777',
     mutedStrong: '#444',
+    mutedForeground: '#9BA1A6',
     card: '#111',
     cardForeground: '#ECEDEE',
     positive: '#2e7d32',

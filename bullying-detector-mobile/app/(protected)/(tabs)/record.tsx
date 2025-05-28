@@ -9,23 +9,23 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import { Audio } from 'expo-av'
-import { AudioService } from '@/services/AudioService'
-import * as FileSystem from 'expo-file-system'
 import { IOSOutputFormat } from 'expo-av/build/Audio'
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedSafeView } from '@/components/ThemedSafeView'
 import { Colors } from '@/constants/Colors'
 import { FontAwesome, Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import { AudioDetect } from '@/interfaces/Audio'
 import { useTheme } from '@/hooks/useTheme'
 import { ThemeEnum } from '@/enums/ThemeEnum'
+import { DetectionData } from '@/interfaces/Detection'
+import { DetectionService } from '@/services/DetectionService'
+import * as FileSystem from 'expo-file-system'
 
 export default function RecordScreen() {
-  const audioService = useMemo(() => new AudioService(), [])
+  const detectionService = useMemo(() => new DetectionService(), [])
   const [recording, setRecording] = useState<any>()
   const [audioUri, setAudioUri] = useState<string | null>(null)
-  const [audioList, setAudioList] = useState<AudioDetect[]>([])
+  const [detectionList, setDetectionList] = useState<DetectionData[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingDetect, setLoadingDetect] = useState(false)
   const [sound, setSound] = useState<Audio.Sound | null>(null)
@@ -35,10 +35,10 @@ export default function RecordScreen() {
   const fetchAllAudio = async () => {
     setLoading(true)
 
-    const data = await audioService.getAll()
+    const data = await detectionService.getAll()
 
     if (data) {
-      setAudioList(data)
+      setDetectionList(data)
     }
 
     setLoading(false)
@@ -113,7 +113,7 @@ export default function RecordScreen() {
   async function transcribeAudio(recordCover: any) {
     const times = 4
 
-    let isSuccess = await audioService.detect(recordCover)
+    let isSuccess = await detectionService.detect(recordCover)
 
     // for (let i = 0; i < times; i++) {
     //   if (!isSuccess) {
@@ -209,9 +209,9 @@ export default function RecordScreen() {
             { borderColor: colors.mutedStrong },
           ]}
         >
-          {audioList && audioList.length > 0 && (
+          {detectionList && detectionList.length > 0 && (
             <ScrollView>
-              {audioList.map((audio) => (
+              {detectionList.map((audio) => (
                 <Pressable
                   key={audio.idDetection}
                   onPress={() => {
@@ -251,7 +251,7 @@ export default function RecordScreen() {
               <ActivityIndicator color={Colors.light.primary} size="large" />
             </View>
           )}
-          {(!audioList || audioList.length <= 0) && !loading && (
+          {(!detectionList || detectionList.length <= 0) && !loading && (
             <View style={styles.detectionSectionEmpty}>
               <FontAwesome
                 name="file-audio-o"
