@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { PrismaUtil } from 'src/utils/prisma.util'
-import { CreateBullyingPhraseDto } from './dto/create-bullying-phrase.dto'
 import { bullyingPhrase } from '@prisma/client'
 
 @Injectable()
@@ -11,17 +10,25 @@ export class BullyingPhraseService {
     private prismaUtil: PrismaUtil,
   ) {}
 
-  async create(createBullyingPhraseDto: CreateBullyingPhraseDto) {
+  async upsert(
+    phrase: string,
+    userDetect: boolean,
+    isBullying = true,
+    idPhrase?: number,
+  ): Promise<bullyingPhrase> {
     const newPhrase: Partial<bullyingPhrase> = {
-      phrase: createBullyingPhraseDto.phrase,
-      userDetect: true,
+      phrase,
+      userDetect,
+      isBullying,
     }
 
     return await this.prismaUtil.performOperation(
-      'Não foi possível criar a frase de assédio moral',
+      'Não foi possível atualizar a frase de bullying',
       async () => {
-        return await this.prisma.bullyingPhrase.create({
-          data: newPhrase,
+        return await this.prisma.bullyingPhrase.upsert({
+          where: { idPhrase: idPhrase ?? 0 },
+          create: newPhrase,
+          update: newPhrase,
         })
       },
     )

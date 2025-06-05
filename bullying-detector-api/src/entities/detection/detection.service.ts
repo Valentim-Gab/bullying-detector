@@ -10,6 +10,7 @@ import { HttpStatusCode } from 'axios'
 import { Response } from 'express'
 import { SimpleDetection } from 'src/interfaces/detection.interface'
 import { DetectionBaseDto } from './dto/detection-base-dto'
+import { DetectionConstants } from 'src/constants/detection.constant'
 
 @Injectable()
 export class DetectionService {
@@ -75,7 +76,10 @@ export class DetectionService {
     const extras = database + similarity
 
     // Limita máximo em 5
-    const avaliation = Math.min(iaAverage + extras, 5)
+    const avaliation = Math.min(
+      iaAverage + extras,
+      DetectionConstants.AVALIATION_MAX_VALUE,
+    )
 
     const newDetection: Omit<Detection, 'idDetection'> = {
       recordingAudio: filename,
@@ -144,7 +148,7 @@ export class DetectionService {
     )
   }
 
-  async findById(id: number) {
+  async findById(id: number): Promise<Detection | null> {
     return this.prismaUtil.performOperation(
       'Não foi possível encontrar a detecção',
       async () => {
@@ -183,18 +187,22 @@ export class DetectionService {
           SELECT 1
           FROM BULLYING_PHRASE
           WHERE ${text} ILIKE CONCAT('%', phrase, '%')
+          AND IS_BULLYING
         ) THEN TRUE
         ELSE FALSE
         END AS BULLYING_PHRASE, USER_DETECT, ID_PHRASE
       FROM BULLYING_PHRASE
       WHERE ${text} ILIKE CONCAT('%', phrase, '%')
+      AND IS_BULLYING
       LIMIT 1;
     `
 
     return {
       detected: result[0]?.bullying_Phrase ?? false,
       avaliation:
-        result[0]?.bullying_Phrase || result[0]?.user_detect ? 0.5 : 0,
+        result[0]?.bullying_Phrase || result[0]?.user_detect
+          ? DetectionConstants.DATABASE_MAX_VALUE
+          : 0,
       databaseUserDetect: result[0]?.user_detect ?? null,
       idPhrase: result[0]?.id_phrase,
     }
@@ -297,10 +305,10 @@ export class DetectionService {
   }
 
   async updateVote(
+    idDetection: number,
     voteApprove: number,
     voteReject: number,
-    idDetection: number,
-  ) {
+  ): Promise<Detection> {
     const detection = await this.findById(idDetection)
 
     if (!detection) {
@@ -320,12 +328,38 @@ export class DetectionService {
     detection.databaseUsersReject = newReject
     detection.databaseUserDetect = newApprove > 0 || newReject > 0
 
+    if (detection.databaseResult > 0 && newApprove <= newReject) {
+      detection.avaliation -= detection.databaseResult
+    }
+
+    detection.databaseResult =
+      newApprove > newReject ? DetectionConstants.DATABASE_MAX_VALUE : 0
+
+    const avaliation = Math.min(
+      detection.databaseResult + detection.avaliation,
+      DetectionConstants.AVALIATION_MAX_VALUE,
+    )
+
     return this.prisma.detection.update({
       where: { idDetection },
       data: {
         databaseUsersApprove: detection.databaseUsersApprove,
         databaseUsersReject: detection.databaseUsersReject,
         databaseUserDetect: detection.databaseUserDetect,
+        databaseResult: detection.databaseResult,
+        avaliation: avaliation,
+      },
+    })
+  }
+
+  async updateIdPhrase(
+    idDetection: number,
+    idPhrase: number | null,
+  ): Promise<Detection> {
+    return this.prisma.detection.update({
+      where: { idDetection },
+      data: {
+        idPhrase: idPhrase,
       },
     })
   }

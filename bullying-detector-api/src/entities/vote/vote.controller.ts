@@ -6,7 +6,6 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
-  Put,
   Post,
 } from '@nestjs/common'
 import { VoteService } from './vote.service'
@@ -15,10 +14,9 @@ import { RolesGuard } from 'src/security/guards/roles.guard'
 import { Roles } from 'src/decorators/roles.decorator'
 import { Role } from 'src/enums/Role'
 import { ValidationPipe } from 'src/pipes/validation.pipe'
-import { CreateVoteDto } from './dto/create-vote.dto'
 import { ReqUser } from 'src/decorators/req-user.decorator'
 import { Users } from '@prisma/client'
-import { UpdateVoteDto } from './dto/update-vote.dto'
+import { UpsertVoteDto } from './dto/upsert-vote.dto'
 
 @Controller('vote')
 export class VoteController {
@@ -29,9 +27,9 @@ export class VoteController {
   @Post()
   async create(
     @ReqUser() user: Users,
-    @Body(new ValidationPipe()) createVoteDto: CreateVoteDto,
+    @Body(new ValidationPipe()) upsertVoteDto: UpsertVoteDto,
   ) {
-    return this.voteService.create(user.id, createVoteDto)
+    return this.voteService.upsert(user.id, upsertVoteDto)
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -58,16 +56,16 @@ export class VoteController {
     return this.voteService.findByUserDetection(user.id, detectionId)
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.User, Role.Admin)
-  @Put(':idVote')
-  update(
-    @ReqUser() user: Users,
-    @Param('idVote', ParseIntPipe) idVote: number,
-    @Body(new ValidationPipe()) updateVoteDto: UpdateVoteDto,
-  ) {
-    return this.voteService.update(idVote, user.id, updateVoteDto)
-  }
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(Role.User, Role.Admin)
+  // @Put(':idVote')
+  // update(
+  //   @ReqUser() user: Users,
+  //   @Param('idVote', ParseIntPipe) idVote: number,
+  //   @Body(new ValidationPipe()) updateVoteDto: UpdateVoteDto,
+  // ) {
+  //   return this.voteService.update(idVote, user.id, updateVoteDto)
+  // }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.User, Role.Admin)

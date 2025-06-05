@@ -1,9 +1,10 @@
 import { PrismaService } from 'nestjs-prisma'
 import { PrismaUtil } from 'src/utils/prisma.util'
-import { CreateVoteDto } from './dto/create-vote.dto'
-import { UpdateVoteDto } from './dto/update-vote.dto'
+import { UpsertVoteDto } from './dto/upsert-vote.dto'
 import { Injectable } from '@nestjs/common'
 import { DetectionService } from '../detection/detection.service'
+import { BullyingPhraseService } from '../bullying-phrase/bullying-phrase.service'
+import { Detection } from '@prisma/client'
 
 @Injectable()
 export class VoteService {
@@ -11,26 +12,71 @@ export class VoteService {
     private prisma: PrismaService,
     private prismaUtil: PrismaUtil,
     private detectionService: DetectionService,
+    private bullyingPhraseService: BullyingPhraseService,
   ) {}
 
-  async create(userId: number, createVoteDto: CreateVoteDto) {
+  async upsert(userId: number, upsertVoteDto: UpsertVoteDto) {
     return this.prismaUtil.performOperation(
       'Não foi possível cadastrar voto',
       async () => {
-        await this.prisma.vote.create({
-          data: {
-            ...createVoteDto,
-            userId,
+        const previousVote = await this.findByUserDetection(
+          userId,
+          upsertVoteDto.detectionId,
+        )
+
+        const payload = {
+          detectionId: upsertVoteDto.detectionId,
+          vote: upsertVoteDto.vote,
+          userId: userId,
+        }
+
+        await this.prisma.vote.upsert({
+          where: {
+            userId: payload.userId,
+            detectionId: payload.detectionId,
+            idVote: previousVote?.idVote ?? 0,
+          },
+          create: payload,
+          update: {
+            vote: payload.vote,
           },
         })
 
-        await this.detectionService.updateVote(
-          createVoteDto.detectionId,
-          createVoteDto.vote ? 1 : 0,
-          !createVoteDto.vote ? 1 : 0,
+        let detection: Detection | null = null
+
+        if (previousVote) {
+          detection = await this.detectionService.updateVote(
+            upsertVoteDto.detectionId,
+            (upsertVoteDto.vote ? 1 : 0) - (previousVote?.vote ? 1 : 0),
+            (!upsertVoteDto.vote ? 1 : 0) - (!previousVote?.vote ? 1 : 0),
+          )
+        } else {
+          detection = await this.detectionService.updateVote(
+            upsertVoteDto.detectionId,
+            upsertVoteDto.vote ? 1 : 0,
+            !upsertVoteDto.vote ? 1 : 0,
+          )
+        }
+
+        if (!detection) {
+          throw new Error('Detecção não encontrada.')
+        }
+
+        const bullyingPhrase = await this.bullyingPhraseService.upsert(
+          detection.mainText.slice(0, 100),
+          true,
+          detection.databaseUsersApprove > detection.databaseUsersReject,
+          detection.idPhrase,
         )
 
-        return { message: 'Voto cadastrado com sucesso' }
+        if (detection.idPhrase == null) {
+          return await this.detectionService.updateIdPhrase(
+            detection.idDetection,
+            bullyingPhrase.idPhrase,
+          )
+        }
+
+        return detection
       },
     )
   }
@@ -64,30 +110,30 @@ export class VoteService {
     )
   }
 
-  async update(idVote: number, userId: number, updateVoteDto: UpdateVoteDto) {
-    return this.prismaUtil.performOperation(
-      'Não foi porrível atualizar o voto',
-      async () => {
-        const previousVote = await this.findOne(idVote)
+  // async update(idVote: number, userId: number, updateVoteDto: UpdateVoteDto) {
+  //   return this.prismaUtil.performOperation(
+  //     'Não foi porrível atualizar o voto',
+  //     async () => {
+  //       const previousVote = await this.findOne(idVote)
 
-        await this.prisma.vote.update({
-          where: { idVote },
-          data: {
-            ...updateVoteDto,
-            userId,
-          },
-        })
+  //       await this.prisma.vote.update({
+  //         where: { idVote },
+  //         data: {
+  //           ...updateVoteDto,
+  //           userId,
+  //         },
+  //       })
 
-        await this.detectionService.updateVote(
-          updateVoteDto.detectionId,
-          (updateVoteDto.vote ? 1 : 0) - (previousVote?.vote ? 1 : 0),
-          (!updateVoteDto.vote ? 1 : 0) - (!previousVote?.vote ? 1 : 0),
-        )
+  //       await this.detectionService.updateVote(
+  //         updateVoteDto.detectionId,
+  //         (updateVoteDto.vote ? 1 : 0) - (previousVote?.vote ? 1 : 0),
+  //         (!updateVoteDto.vote ? 1 : 0) - (!previousVote?.vote ? 1 : 0),
+  //       )
 
-        return { message: 'Voto atualizado com sucesso' }
-      },
-    )
-  }
+  //       return { message: 'Voto atualizado com sucesso' }
+  //     },
+  //   )
+  // }
 
   async delete(idVote: number, userId: number) {
     return this.prismaUtil.performOperation(
