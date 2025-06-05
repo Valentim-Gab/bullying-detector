@@ -9,22 +9,27 @@ import {
   View,
   RefreshControl,
   Image,
-  Modal,
-  ScrollView,
   Dimensions,
   Pressable,
+  Platform,
+  ToastAndroid,
 } from 'react-native'
 import React, { useState } from 'react'
 import { DetectionService } from '@/services/DetectionService'
-import { ThemedView } from '@/components/ThemedView'
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view'
-import ButtonPrimary from '@/components/buttons/ButtonPrimary'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
+import { RFValue } from 'react-native-responsive-fontsize'
+import { Detection } from '@/interfaces/Detection'
+import { Avaliation } from '@/interfaces/Avaliation'
+import ButtonPrimary from '@/components/buttons/ButtonPrimary'
+import Loading from '@/components/Loading'
+import Toast from 'react-native-toast-message'
 
 export default function AvaliationScreen() {
   const [index, setIndex] = useState(0)
+  const [loadingDetect, setLoadingDetect] = useState(false)
   const [routes] = useState([
     { key: 'avaliations', title: 'Avaliações' },
     { key: 'detections', title: 'Detecções' },
@@ -53,8 +58,45 @@ export default function AvaliationScreen() {
     retry: false,
   })
 
-  const handleDetect = (text: string) => {
-    // detectMutation.mutateAsync(text)
+  const handleDetect = async (avaliation: Avaliation) => {
+    if (avaliation.idAvaliation == null) {
+      return
+    }
+
+    try {
+      const existingDetection = await detectionService.findByExternal(
+        avaliation.idAvaliation,
+        'UFSM'
+      )
+
+      if (existingDetection) {
+        setIndex(1)
+        router.push(`/modal-detect/${existingDetection.idDetection}`)
+
+        if (Platform.OS === 'android')
+          ToastAndroid.show('Já foi avaliado anteriormente', ToastAndroid.SHORT)
+
+        return
+      }
+    } catch (error) {
+      console.error('Erro ao verificar detecção existente:', error)
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao verificar detecção existente',
+        text1Style: { fontSize: RFValue(14) },
+      })
+
+      return
+    }
+
+    const detectionData: Detection = {
+      mainText: avaliation.mainText,
+      context: 'Universidade Federal - Avaliação de aulas e professores',
+      externalModule: 'UFSM',
+      externalId: avaliation.idAvaliation,
+    }
+
+    detectMutation.mutate(detectionData)
   }
 
   const handleRefresh = async () => {
@@ -64,6 +106,32 @@ export default function AvaliationScreen() {
   const handleRefreshUFSM = async () => {
     await queryClient.invalidateQueries({ queryKey: ['get_detections_ufsm'] })
   }
+
+  const detectMutation = useMutation({
+    mutationKey: ['detect'],
+    mutationFn: (detection: Detection) => detectionService.create(detection),
+    onMutate: () => {
+      setLoadingDetect(true)
+    },
+    onSettled: () => {
+      setLoadingDetect(false)
+    },
+    onSuccess: (data: Detection) => {
+      handleRefreshUFSM()
+      setIndex(1)
+      router.push(`/modal-detect/${data.idDetection}`)
+
+      if (Platform.OS === 'android')
+        ToastAndroid.show('Detecção realizada', ToastAndroid.SHORT)
+    },
+    onError: (error) => {
+      Toast.show({
+        type: 'error',
+        text1: error.message,
+        text1Style: { fontSize: RFValue(14) },
+      })
+    },
+  })
 
   const FirstRoute = () => (
     <FlatList
@@ -95,7 +163,7 @@ export default function AvaliationScreen() {
             round
             mini
             noShadow
-            onPress={() => handleDetect(item.mainText)}
+            onPress={() => handleDetect(item)}
           />
         </View>
       )}
@@ -105,7 +173,11 @@ export default function AvaliationScreen() {
         <RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />
       }
       ListEmptyComponent={() => (
-        <ThemedText>Nenhuma avaliação encontrada</ThemedText>
+        <ThemedText>
+          {isLoading
+            ? 'Carregandon avaliações...'
+            : 'Nenhuma avaliação encontrada'}
+        </ThemedText>
       )}
       ListHeaderComponent={
         <View style={styles.titleSection}>
@@ -183,6 +255,7 @@ export default function AvaliationScreen() {
           />
         )}
       />
+      <Loading visible={loadingDetect} />
     </ThemedSafeView>
   )
 }

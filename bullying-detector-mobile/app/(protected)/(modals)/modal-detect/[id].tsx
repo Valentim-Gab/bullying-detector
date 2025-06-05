@@ -47,7 +47,7 @@ export default function ModalDetectScreen() {
   const fetchAudio = async (id: number) => {
     setLoading(true)
 
-    const data = await detectionService.get(id)
+    const data = await detectionService.find(id)
 
     if (data) {
       setDetection(data)
@@ -230,6 +230,9 @@ export default function ModalDetectScreen() {
         visible={modalVisible}
         onRequestClose={closeModal}
         statusBarTranslucent={true}
+        style={{
+          zIndex: -30
+        }}
       >
         <Pressable style={{ height: 60 }} onPress={closeModal}></Pressable>
         <ThemedView style={styles.container}>

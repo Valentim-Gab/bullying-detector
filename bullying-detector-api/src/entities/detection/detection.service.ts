@@ -36,22 +36,22 @@ export class DetectionService {
     const similarityResult = await this.detectSimilarity(detection.mainText)
     console.log('similarityResult', similarityResult)
 
-    const mistralResult = await this.detectMistral(
-      detection.mainText,
-      detection.context,
-    )
-    const cohereResult = await this.detectCohere(
-      detection.mainText,
-      detection.context,
-    )
-    const deepSeekResult = await this.detectDeepSeek(
-      detection.mainText,
-      detection.context,
-    )
+    // const mistralResult = await this.detectMistral(
+    //   detection.mainText,
+    //   detection.context,
+    // )
+    // const cohereResult = await this.detectCohere(
+    //   detection.mainText,
+    //   detection.context,
+    // )
+    // const deepSeekResult = await this.detectDeepSeek(
+    //   detection.mainText,
+    //   detection.context,
+    // )
 
-    // const mistralResult = null
-    // const cohereResult = null
-    // const deepSeekResult = null
+    const mistralResult = null
+    const cohereResult = null
+    const deepSeekResult = null
 
     console.log('mistralResult', mistralResult)
     console.log('cohereResult', cohereResult)
