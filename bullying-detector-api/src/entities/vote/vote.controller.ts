@@ -25,7 +25,7 @@ export class VoteController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin, Role.User)
   @Post()
-  async create(
+  async upsert(
     @ReqUser() user: Users,
     @Body(new ValidationPipe()) upsertVoteDto: UpsertVoteDto,
   ) {

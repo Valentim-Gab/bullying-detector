@@ -52,6 +52,11 @@ export class DetectionController {
     return this.detectionService.save(detection, user.id)
   }
 
+  @Post('/public')
+  createPublic(@Body(new ValidationPipe()) detection: DetectionBaseDto) {
+    return this.detectionService.save(detection)
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.User, Role.Admin)
   @Get()

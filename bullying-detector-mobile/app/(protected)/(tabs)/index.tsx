@@ -1,9 +1,4 @@
-import {
-  Image,
-  StyleSheet,
-  View,
-  ScrollView,
-} from 'react-native'
+import { Image, StyleSheet, View, ScrollView } from 'react-native'
 import { HelloWave } from '@/components/HelloWave'
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
@@ -39,12 +34,11 @@ export default function HomeScreen() {
           <ThemedText type="title" style={styles.textWellcome}>
             Bem-vindo!
           </ThemedText>
-          <HelloWave />
         </View>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View>
             <ThemedText type="subtitle">Detector de assédio moral</ThemedText>
-            <ThemedText type='small' style={styles.textContent}>
+            <ThemedText type="small" style={styles.textContent}>
               Este é um aplicativo que detecta{' '}
               <ThemedText type="defaultSemiBold">assédio moral</ThemedText>{' '}
               encontrado em uma conversa. Experimente agora acessando a aba{' '}
@@ -61,7 +55,7 @@ export default function HomeScreen() {
           </View>
           <View style={styles.viewScroll}>
             <ThemedText type="subtitle">Contexto</ThemedText>
-            <ThemedText type='small' style={styles.textContent}>
+            <ThemedText type="small" style={styles.textContent}>
               Este aplicativo foi desenvolvido para fins acadêmicos. É um
               trabalho da disciplina de{' '}
               <ThemedText type="defaultSemiBold">

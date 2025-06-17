@@ -8,8 +8,9 @@ import {
   Image,
   ActivityIndicator,
   StyleSheet,
+  Text,
 } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { ThemeEnum } from '@/enums/ThemeEnum'
 import { Colors } from '@/constants/Colors'
 import { useEffect, useMemo, useState } from 'react'
@@ -19,13 +20,21 @@ import { useTheme } from '@/hooks/useTheme'
 import { environment } from '@/environments/environment'
 import { DetectionService } from '@/services/DetectionService'
 import { DetectionData } from '@/interfaces/Detection'
+import { useMutation } from '@tanstack/react-query'
+import { Vote } from '@/interfaces/Vote'
+import { VoteService } from '@/services/VoteService'
+import { RFValue } from 'react-native-responsive-fontsize'
 import Skeleton from 'expo-skeleton-component'
 import ButtonPrimary from '@/components/buttons/ButtonPrimary'
+import Toast from 'react-native-toast-message'
 
 export default function ModalDetectScreen() {
   const navigation = useNavigation()
   const detectionService = useMemo(() => new DetectionService(), [])
+  const voteService = useMemo(() => new VoteService(), [])
   const [modalVisible, setModalVisible] = useState(false)
+  const [modalDatabase, setModalDatabase] = useState(false)
+  const [modalDetails, setModalDetails] = useState(false)
   const [detection, setDetection] = useState<DetectionData | null>(null)
   const [loading, setLoading] = useState(false)
   const { colors, theme } = useTheme()
@@ -44,7 +53,7 @@ export default function ModalDetectScreen() {
     UNDETECTED,
   }
 
-  const fetchAudio = async (id: number) => {
+  const fetchDetection = async (id: number) => {
     setLoading(true)
 
     const data = await detectionService.find(id)
@@ -59,7 +68,7 @@ export default function ModalDetectScreen() {
   useEffect(() => {
     const unsubscribeFocus = navigation.addListener('focus', () => {
       setModalVisible(true)
-      fetchAudio(Number(id))
+      fetchDetection(Number(id))
     })
 
     const unsubscribeBlur = navigation.addListener('blur', () => {
@@ -77,16 +86,6 @@ export default function ModalDetectScreen() {
     navigation.goBack()
   }
 
-  const getIcon = (value?: boolean) => {
-    if (value) {
-      return (
-        <Ionicons name="checkmark-circle" size={48} color={colors.positive} />
-      )
-    }
-
-    return <Ionicons name="close-circle" size={48} color={colors.negative} />
-  }
-
   const getDatabaseTextEntity = (detection: DetectionData) => {
     const results = [
       `O áudio contém assédio moral baseado nos dados do Administrador`,
@@ -99,28 +98,6 @@ export default function ModalDetectScreen() {
     const database = getDatabaseResult(detection)
 
     return results[database]
-  }
-
-  const getDatabaseIcon = (detection: DetectionData) => {
-    const database = getDatabaseResult(detection)
-
-    if (
-      database === databaseResult.UNDETECTED ||
-      database === databaseResult.UNDETECTED_USERS
-    ) {
-      return <Ionicons name="close-circle" size={48} color={colors.negative} />
-    }
-
-    if (
-      database === databaseResult.DETECTED_ADM ||
-      database === databaseResult.DETECTED_USERS
-    ) {
-      return (
-        <Ionicons name="checkmark-circle" size={48} color={colors.positive} />
-      )
-    }
-
-    return <Ionicons name="help-circle" size={48} color={colors.warning} />
   }
 
   const getDatabaseResult = (detection: DetectionData): databaseResult => {
@@ -222,6 +199,39 @@ export default function ModalDetectScreen() {
     ]
   }
 
+  const handleModalDatabase = (value: boolean) => {
+    setModalDatabase(value)
+  }
+
+  const handleModalDetails = (value: boolean) => {
+    setModalDetails(value)
+  }
+
+  const vote = (vote: boolean) => {
+    const payload: Vote = {
+      detectionId: Number(id),
+      vote: vote,
+    }
+
+    voteMutation.mutate(payload)
+  }
+
+  const voteMutation = useMutation({
+    mutationKey: ['upsert_vote'],
+    mutationFn: (payload: Vote) => voteService.upsert(payload),
+    onSuccess: () => {
+      setModalDatabase(false)
+      fetchDetection(Number(id))
+    },
+    onError: (error) => {
+      Toast.show({
+        type: 'error',
+        text1: error.message,
+        text1Style: { fontSize: RFValue(14) },
+      })
+    },
+  })
+
   return (
     <View style={{ backgroundColor: '#00000094', flex: 1 }}>
       <Modal
@@ -231,7 +241,7 @@ export default function ModalDetectScreen() {
         onRequestClose={closeModal}
         statusBarTranslucent={true}
         style={{
-          zIndex: -30
+          zIndex: -30,
         }}
       >
         <Pressable style={{ height: 60 }} onPress={closeModal}></Pressable>
@@ -717,27 +727,25 @@ export default function ModalDetectScreen() {
                   detection.databaseUserDetect && (
                     <Pressable
                       style={styles.btnSavePhrase}
-                      onPress={() =>
-                        router.push(`/phrase/details/${detection.idDetection}`)
-                      }
+                      onPress={() => handleModalDetails(true)}
                     >
                       <ThemedText style={{ color: colors.secondaryLight }}>
                         Ver detalhes
                       </ThemedText>
                     </Pressable>
                   )}
-                {detection && !detection.databaseResult && (
-                  <Pressable
-                    style={styles.btnSavePhrase}
-                    onPress={() =>
-                      router.push(`/phrase/${detection.idDetection}`)
-                    }
-                  >
-                    <ThemedText style={{ color: colors.secondaryLight }}>
-                      Classificar conteúdo como ofensivo
-                    </ThemedText>
-                  </Pressable>
-                )}
+                {detection &&
+                  !detection.databaseResult &&
+                  !detection.databaseUserDetect && (
+                    <Pressable
+                      style={styles.btnSavePhrase}
+                      onPress={() => handleModalDatabase(true)}
+                    >
+                      <ThemedText style={{ color: colors.secondaryLight }}>
+                        Classificar conteúdo como ofensivo
+                      </ThemedText>
+                    </Pressable>
+                  )}
               </View>
 
               <View
@@ -804,7 +812,7 @@ export default function ModalDetectScreen() {
 
       <Modal
         visible={modalTextConfig.visible}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
       >
         <View
@@ -844,6 +852,181 @@ export default function ModalDetectScreen() {
                 })
               }
             />
+          </ThemedView>
+        </View>
+      </Modal>
+
+      <Modal visible={modalDatabase} animationType="fade" transparent={true}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+          }}
+        >
+          <ThemedView
+            style={{
+              margin: 20,
+              padding: 20,
+              borderRadius: 10,
+              maxHeight: '60%',
+              opacity: 1,
+              backgroundColor: colors.card,
+              borderWidth: 1,
+              borderColor: colors.mutedStrong,
+            }}
+          >
+            <ThemedText type="subtitle" style={{ marginBottom: 12 }}>
+              Classificar como ofensivo
+            </ThemedText>
+            <ScrollView>
+              <ThemedText>
+                Ao enviar, o texto gerado passará a ser considerado assédio
+                moral para o nosso sistema.
+              </ThemedText>
+            </ScrollView>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                gap: 8,
+                marginTop: 8,
+              }}
+            >
+              <ButtonPrimary
+                title="Cancelar"
+                dense
+                outline
+                style={{ marginTop: 24 }}
+                onPress={() => {
+                  setModalDatabase(false)
+                }}
+              />
+              <ButtonPrimary
+                title="Confirmar"
+                dense
+                style={{ marginTop: 24 }}
+                onPress={() => vote(true)}
+              />
+            </View>
+          </ThemedView>
+        </View>
+      </Modal>
+
+      <Modal visible={modalDetails} animationType="fade" transparent={true}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+          }}
+        >
+          <ThemedView
+            style={{
+              margin: 20,
+              padding: 20,
+              borderRadius: 10,
+              maxHeight: '60%',
+              opacity: 1,
+              backgroundColor: colors.card,
+              borderWidth: 1,
+              borderColor: colors.mutedStrong,
+            }}
+          >
+            <Pressable
+              style={{ position: 'absolute', top: 0, right: 0 }}
+              onPress={() => {
+                setModalDetails(false)
+              }}
+            >
+              <Ionicons
+                name="close"
+                size={24}
+                color={colors.mutedForeground}
+                style={styles.btnClose}
+              />
+            </Pressable>
+            <ThemedText type="subtitle" style={{ marginBottom: 12 }}>
+              Detalhes da database
+            </ThemedText>
+            <ScrollView>
+              <ThemedText>
+                Classificação baseada na opinião dos usuários
+              </ThemedText>
+            </ScrollView>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                gap: 16,
+                marginTop: 24,
+              }}
+            >
+              <Pressable
+                style={[
+                  styles.btnVote,
+                  {
+                    backgroundColor: colors.positive,
+                  },
+                ]}
+                onPress={() => vote(false)}
+              >
+                <MaterialIcons name="thumb-up" size={72} color="white" />
+
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                    color: '#fff',
+                  }}
+                >
+                  Considero{'\n'}inofensivo
+                </Text>
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: Colors.dark.mutedForeground,
+                    margin: 12,
+                    width: '80%',
+                  }}
+                ></View>
+                <Text style={{ textAlign: 'center', color: '#fff' }}>
+                  Total: {detection?.databaseUsersReject ?? 0}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.btnVote,
+                  {
+                    backgroundColor: colors.negative,
+                  },
+                ]}
+                onPress={() => vote(true)}
+              >
+                <MaterialIcons name="thumb-down" size={72} color="white" />
+
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                    color: '#fff',
+                  }}
+                >
+                  Considero{'\n'}ofensivo
+                </Text>
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: Colors.dark.mutedForeground,
+                    margin: 12,
+                    width: '80%',
+                  }}
+                ></View>
+                <Text style={{ textAlign: 'center', color: '#fff' }}>
+                  Total: {detection?.databaseUsersApprove ?? 0}
+                </Text>
+              </Pressable>
+            </View>
           </ThemedView>
         </View>
       </Modal>
@@ -904,6 +1087,14 @@ const styles = StyleSheet.create({
   },
   btnSavePhrase: {
     marginTop: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnVote: {
+    height: 200,
+    flex: 1,
+    borderRadius: 16,
+    padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },

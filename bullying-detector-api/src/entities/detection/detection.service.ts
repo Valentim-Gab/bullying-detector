@@ -30,7 +30,7 @@ export class DetectionService {
     return transcribedText
   }
 
-  async save(detection: DetectionBaseDto, idUser: number, filename?: string) {
+  async save(detection: DetectionBaseDto, idUser?: number, filename?: string) {
     console.log('detection', detection)
     const databaseResult = await this.detectDatabase(detection.mainText)
     console.log('databaseResult', databaseResult)

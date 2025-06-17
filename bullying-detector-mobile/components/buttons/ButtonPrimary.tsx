@@ -10,6 +10,7 @@ import {
 import { ThemedText } from '../ThemedText'
 import { useTheme } from '@/hooks/useTheme'
 import { RFValue } from 'react-native-responsive-fontsize'
+import { Colors } from '@/constants/Colors'
 
 type ColorKeys = keyof ReturnType<typeof useTheme>['colors']
 
@@ -25,6 +26,7 @@ interface ButtonPrimaryProps extends PressableProps {
   noShadow?: boolean
   mini?: boolean
   color?: ColorKeys
+  outline?: boolean
 }
 
 export default function ButtonPrimary(props: ButtonPrimaryProps) {
@@ -59,11 +61,16 @@ export default function ButtonPrimary(props: ButtonPrimaryProps) {
           props.flat && styles.flat,
           props.noShadow && styles.noShadow,
           props.mini && styles.mini,
+          props.outline && styles.outline,
         ]}
       >
         {props.icon && props.icon}
         {props.title && (
-          <ThemedText style={styles.text}>{props.title}</ThemedText>
+          <ThemedText
+            style={[styles.text, props.outline && styles.outlineText]}
+          >
+            {props.title}
+          </ThemedText>
         )}
         {props.children && props.children}
       </Animated.View>
@@ -111,6 +118,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     shadowRadius: 0,
+  },
+  outline: {
+    borderWidth: 1,
+    borderColor: Colors.light.primary,
+    backgroundColor: 'transparent',
+    elevation: 0,
+  },
+  outlineText: {
+    color: Colors.light.primary,
   },
   noShadow: {
     elevation: 0,
