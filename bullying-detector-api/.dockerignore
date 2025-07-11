@@ -1,0 +1,35 @@
+# Dependências instaladas localmente
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+.pnpm-debug.log
+
+# Arquivos de ambiente
+.env
+.env.*
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# IDEs e editores
+.vscode
+.idea
+
+# Arquivos de build
+dist
+build
+coverage
+
+# Outros arquivos temporários
+*.log
+*.tmp
+*.swp
+
+# Bucket
+resources/static/*

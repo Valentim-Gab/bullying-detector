@@ -38,6 +38,7 @@ lerna-debug.log*
 
 # Env
 .env
+.env.local
 
 # Bucket
 resources/static/*
