@@ -1,8 +1,10 @@
 import requests
 from fastapi.responses import JSONResponse
+from fastapi import Query
 from app.main import app
 from dotenv import load_dotenv
 import os
+import json
 
 load_dotenv()
 
@@ -14,36 +16,64 @@ headers = {
     "Content-Type": "application/json"
 }
 
-
 @app.get('/detect/mistral/text')
-async def detect_harassment_mistral_text(text_input):
-    print(mistral_token)
+async def detect_bullying_mistral_text(
+        text_input: str = Query(..., description="Texto a ser analisado"),
+        context: str = Query(None, description="Contexto opcional"),
+):
+    messages = [
+        {
+            "role": "system",
+            "content": "Você é um avaliador de linguagem ofensiva. Sempre responda APENAS com um JSON válido no "
+                       "formato: { \"avaliation\": 0 a 5, \"justification\": \"texto explicando a nota\" }. Onde "
+                       "0 significa nenhuma ofensa e 5 significa ofensa extremamente grave."
+        },
+        {
+            "role": "user",
+            "content": "Avalie a intensidade de ofensa na frase abaixo."
+                      + (" Considere também o contexto, se fornecido." if context else "")
+        }
+    ]
+
+    if context:
+        messages.append({
+            "role": "user",
+            "content": f"Contexto: {context}"
+        })
+
+    messages.append({
+        "role": "user",
+        "content": f"Frase: {text_input}"
+    })
 
     data = {
         "model": "open-mistral-7b",
-        "messages": [
-            {"role": "user",
-             "content": f"Detecte se na seguinte frase há assédio moral e responda apenas 'True' ou 'False'. "
-                        f"Justifique resumidamente. Frase: {text_input}"}
-        ],
-        "temperature": 0.7
+        "messages": messages,
+        "temperature": 0.3
     }
 
     res = requests.post(url, headers=headers, json=data)
 
-    print(res)
+    print(f"STATUS CODE: {res.status_code}", flush=True)
 
-    if not res or res.status_code != 200:
-        return JSONResponse(content={"detected": False})
+    if not res.ok:
+        return JSONResponse(content={"detected": False, "error": "Erro na requisição à API da Mistral."})
 
-    completion = res.json()
-    message = completion["choices"][0]["message"]["content"]
-    split_msg = message.removeprefix('True. ')
-    result = False
+    try:
+        completion = res.json()
+        full_response = completion["choices"][0]["message"]["content"].strip()
 
-    print(message)
+        # Tenta converter diretamente a resposta para JSON
+        parsed_response = json.loads(full_response)
+        print(f'MISTRAL: {parsed_response}')
 
-    if message:
-        result = str(message).startswith('True')
-
-    return JSONResponse(content={"detected": result, "message": split_msg})
+        return JSONResponse(
+            content={
+                "detected": True,
+                "avaliation": parsed_response.get("avaliation"),
+                "message": parsed_response.get("justification")
+            }
+        )
+    except Exception as e:
+        print("Erro ao processar resposta:", e)
+        return JSONResponse(content={"detected": False, "error": "Resposta inválida da IA."})

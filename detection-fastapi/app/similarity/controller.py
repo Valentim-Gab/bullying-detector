@@ -1,6 +1,7 @@
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from fastapi.responses import JSONResponse
+from fastapi import Query
 from app.main import app
 import psycopg2
 from dotenv import load_dotenv
@@ -27,12 +28,13 @@ conn = psycopg2.connect(database=db_name, user=db_user, password=db_password, ho
 cur = conn.cursor()
 
 # Buscar frases do banco de dados
-cur.execute("SELECT phrase FROM harassment_phrase")
+cur.execute("SELECT phrase FROM bullying_phrase WHERE is_bullying")
 phrases = [row[0] for row in cur.fetchall()]
 
 
 @app.get('/detect/similarity/embeddings')
-async def detect_harassment_similarity_embeddings(text_input):
+async def detect_harassment_similarity_embeddings(text_input: str = Query(...)):
+    print('Opa')
     texts_to_compare = phrases + [text_input]
     embeddings = get_embeddings(texts_to_compare)
 
@@ -44,5 +46,6 @@ async def detect_harassment_similarity_embeddings(text_input):
     similarity_threshold = 0.8  # Novo valor de corte
 
     detected = any(sim > similarity_threshold for sim in similarities[0])
+    avaliation = 0.5 if detected else 0
 
-    return JSONResponse(content={"detected": detected})
+    return JSONResponse(content={"detected": detected, "avaliation": avaliation})
