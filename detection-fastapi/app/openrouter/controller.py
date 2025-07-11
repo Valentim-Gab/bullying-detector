@@ -35,7 +35,7 @@ async def detect_bullying_openrouter_text(
         user_prompt = f"Contexto: {context}\n{user_prompt}"
 
     data = {
-        "model": "deepseek/deepseek-prover-v2:free",
+        "model": "deepseek/deepseek-chat-v3-0324:free",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -45,9 +45,13 @@ async def detect_bullying_openrouter_text(
 
     res = requests.post(url, headers=headers, json=data)
 
+    print(res)
+
     if not res.ok:
         print("Erro HTTP:", res.status_code)
         return JSONResponse(content={"detected": False, "error": "Falha na requisição à OpenRouter"})
+
+    print(res.json())
 
     try:
         completion = res.json()
