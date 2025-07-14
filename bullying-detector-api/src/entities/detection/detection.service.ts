@@ -22,10 +22,8 @@ export class DetectionService {
     private httpService: HttpService,
   ) {}
 
-  async transcribeAudio(filename: string) {
-    const transcribedText = await this.fileUtil.transcribeAudio(filename)
-
-    console.log('Transcribed text:', transcribedText)
+  async transcribeAudio(file: Express.Multer.File) {
+    const transcribedText = await this.fileUtil.transcribeAudio(file)
 
     return transcribedText
   }
@@ -34,22 +32,22 @@ export class DetectionService {
     const databaseResult = await this.detectDatabase(detection.mainText)
     const similarityResult = await this.detectSimilarity(detection.mainText)
 
-    const mistralResult = await this.detectMistral(
-      detection.mainText,
-      detection.context,
-    )
-    const cohereResult = await this.detectCohere(
-      detection.mainText,
-      detection.context,
-    )
-    const deepSeekResult = await this.detectDeepSeek(
-      detection.mainText,
-      detection.context,
-    )
+    // const mistralResult = await this.detectMistral(
+    //   detection.mainText,
+    //   detection.context,
+    // )
+    // const cohereResult = await this.detectCohere(
+    //   detection.mainText,
+    //   detection.context,
+    // )
+    // const deepSeekResult = await this.detectDeepSeek(
+    //   detection.mainText,
+    //   detection.context,
+    // )
 
-    // const mistralResult = null
-    // const cohereResult = null
-    // const deepSeekResult = null
+    const mistralResult = null
+    const cohereResult = null
+    const deepSeekResult = null
 
     // Cria array com IA que retornaram resultado
     const iaResults = [mistralResult, cohereResult, deepSeekResult].filter(
@@ -110,7 +108,8 @@ export class DetectionService {
 
   async saveFile(file: Express.Multer.File, idUser: number) {
     const filename = await this.fileUtil.save(file, 'record')
-    const transcribedText = await this.transcribeAudio(filename)
+    const transcribedText = await this.transcribeAudio(file)
+
     const detection = {
       mainText: transcribedText,
     }

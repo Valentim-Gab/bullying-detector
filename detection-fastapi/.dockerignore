@@ -1,0 +1,30 @@
+# Ambientes virtuais
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Diretórios de build e cache
+build/
+dist/
+old/
+*.egg-info/
+
+# IDEs e editores
+.idea/
+.vscode/
+
+# Arquivos de ambiente
+.env
+*.env
+
+# Arquivos de transcrição
+transcribeAudio.py
+transcribeAudio.spec
+audio.ogg
+
+# Arquivos temporários ou logs
+*.log
+*.tmp
+*.swp

@@ -5,20 +5,15 @@ WORKDIR /app
 RUN npm i -g pnpm@latest
 RUN npm i -g prisma@latest
 
-COPY package*.json ./
+COPY --chown=node:node . .
 
 RUN pnpm i
 
-COPY . .
-
-RUN echo "DATABASE_URL=postgresql://{USER}:{PASSWORD}@{DATABASE_PATH}:{PORT}/{DATABASE_NAME}" > .env
-
+RUN pnpm exec prisma generate --schema=prisma/ufsm-schema.prisma
 RUN prisma generate
-
-COPY --chown=node:node . .
 
 RUN pnpm build
 
-EXPOSE 3003
+EXPOSE 3000
 
 CMD ["pnpm", "run", "start:prod"]

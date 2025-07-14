@@ -1,0 +1,79 @@
+version: '3'
+
+services:
+  api:
+    build: ./bullying-detector-api
+    container_name: bullying-detector-api
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      UFSM_DATABASE_URL: ${UFSM_DATABASE_URL}
+      DETECT_API_URL: ${DETECT_API_URL}
+      SECRET: ${SECRET}
+      SECRET_REFRESH: ${SECRET_REFRESH}
+    ports:
+      - '3069:3000'
+    depends_on:
+      - bullying-detector-db
+      - ufsm-db
+      - detection-fastapi
+    networks:
+      - bullying-detector-workshop
+    volumes:
+      - bullying-detector-static-data:/resources/static
+
+  detection-fastapi:
+    build: ./detection-fastapi
+    container_name: detection-fastapi
+    environment:
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: ${POSTGRES_HOST}
+      DB_PORT: 5432
+      COHERE_KEY: ${COHERE_KEY}
+      MISTRAL_TOKEN: ${MISTRAL_TOKEN}
+      OPENROUTER_TOKEN: ${OPENROUTER_TOKEN}
+    ports:
+      - '6999:8000'
+    depends_on:
+      - bullying-detector-db
+    networks:
+      - bullying-detector-workshop
+
+  bullying-detector-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - 5469:5432
+    networks:
+      - bullying-detector-workshop
+    volumes:
+      - bullying-detector-db-data:/var/lib/postgresql/data
+
+  ufsm-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${UFSM_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${UFSM_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${UFSM_POSTGRES_DB}
+    ports:
+      - 5470:5432
+    networks:
+      - bullying-detector-workshop
+    volumes:
+      - ufsm-db-data:/var/lib/postgresql/data
+
+networks:
+  bullying-detector-workshop:
+    driver: bridge
+
+volumes:
+  bullying-detector-db-data:
+    name: bullying-detector-db-data
+  ufsm-db-data:
+    name: ufsm-db-data
+  bullying-detector-static-data:
+    name: bullying-detector-static-data
