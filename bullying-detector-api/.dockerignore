@@ -25,6 +25,7 @@ Thumbs.db
 dist
 build
 coverage
+src/utils/python/*
 
 # Outros arquivos temporários
 *.log

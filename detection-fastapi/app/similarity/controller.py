@@ -34,7 +34,6 @@ phrases = [row[0] for row in cur.fetchall()]
 
 @app.get('/detect/similarity/embeddings')
 async def detect_harassment_similarity_embeddings(text_input: str = Query(...)):
-    print('Opa')
     texts_to_compare = phrases + [text_input]
     embeddings = get_embeddings(texts_to_compare)
 
