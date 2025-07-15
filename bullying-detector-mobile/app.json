@@ -17,7 +17,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logos/logomark.png"
       },
-      "package": "bullying_detector.valentim.software"
+      "package": "software.valentim.bullying_detector"
     },
     "web": {
       "bundler": "metro",
@@ -40,12 +40,20 @@
       "typedRoutes": true
     },
     "extra": {
+      "apiUrl": "https://bullying-detector-api.valentim.software",
       "router": {
         "origin": false
       },
       "eas": {
-        "projectId": "7e9ee09e-74fe-4c89-8758-1c905f0f2970"
+        "projectId": "9b39789f-b511-41ac-b75d-7192405965fe"
       }
+    },
+    "owner": "valentim_gab",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9b39789f-b511-41ac-b75d-7192405965fe"
     }
   }
 }
