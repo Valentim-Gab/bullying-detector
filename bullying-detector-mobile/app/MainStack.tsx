@@ -1,6 +1,6 @@
 import { useTheme } from '@/hooks/useTheme'
 import { Stack } from 'expo-router'
-import * as NavigationBar from 'expo-navigation-bar'
+// import * as NavigationBar from 'expo-navigation-bar'
 import { ActivityIndicator, Appearance, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { ThemeEnum } from '@/enums/ThemeEnum'
@@ -11,9 +11,9 @@ export default function MainStack() {
   const { colors, isSystemTheme, setSystemTheme } = useTheme()
   const { isAuthenticated, isLoading } = useAuth()
 
-  useEffect(() => {
-    NavigationBar.setBackgroundColorAsync(colors.backgroundSecondary)
-  }, [colors])
+  // useEffect(() => {
+  //   NavigationBar.setBackgroundColorAsync(colors.backgroundSecondary)
+  // }, [colors])
 
   useEffect(() => {
     const updateTheme = () => {

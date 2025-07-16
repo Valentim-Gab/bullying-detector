@@ -175,7 +175,7 @@ export default function AvaliationScreen() {
       ListEmptyComponent={() => (
         <ThemedText>
           {isLoading
-            ? 'Carregandon avaliações...'
+            ? 'Carregando avaliações...'
             : 'Nenhuma avaliação encontrada'}
         </ThemedText>
       )}
@@ -263,7 +263,8 @@ export default function AvaliationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 32,
+    paddingVertical: 32,
+    paddingHorizontal: 20,
   },
   titleSection: {
     gap: 8,

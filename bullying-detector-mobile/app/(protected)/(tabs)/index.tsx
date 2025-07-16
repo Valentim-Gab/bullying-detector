@@ -89,7 +89,8 @@ const styles = StyleSheet.create({
   },
   viewContent: {
     gap: 32,
-    padding: 32,
+    paddingVertical: 32,
+    paddingHorizontal: 20,
   },
   viewWellcome: {
     flexDirection: 'row',
