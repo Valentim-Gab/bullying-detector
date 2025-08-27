@@ -240,9 +240,6 @@ export default function ModalDetectScreen() {
         visible={modalVisible}
         onRequestClose={closeModal}
         statusBarTranslucent={true}
-        style={{
-          zIndex: -30,
-        }}
       >
         <Pressable style={{ height: 60 }} onPress={closeModal}></Pressable>
         <ThemedView style={styles.container}>
@@ -414,7 +411,8 @@ export default function ModalDetectScreen() {
                 <View style={styles.resultItemTitleSection}>
                   <Image
                     source={require('@/assets/images/mistral-logo.png')}
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    style={{ width: 48, height: 48 }}
+                    resizeMode="contain"
                   />
                   <ThemedText style={styles.resultItemTitleTxt}>
                     Mistral AI
@@ -497,7 +495,8 @@ export default function ModalDetectScreen() {
                 <View style={styles.resultItemTitleSection}>
                   <Image
                     source={require('@/assets/images/cohere-logo.png')}
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    style={{ width: 48, height: 48 }}
+                    resizeMode="contain"
                   />
                   <ThemedText style={styles.resultItemTitleTxt}>
                     Cohere AI
@@ -579,7 +578,8 @@ export default function ModalDetectScreen() {
                 <View style={styles.resultItemTitleSection}>
                   <Image
                     source={require('@/assets/images/deepseek-logo.png')}
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    style={{ width: 48, height: 48 }}
+                    resizeMode="contain"
                   />
                   <ThemedText style={styles.resultItemTitleTxt}>
                     DeepSeek AI
@@ -667,7 +667,8 @@ export default function ModalDetectScreen() {
                 <View style={styles.resultItemTitleSection}>
                   <Image
                     source={require('@/assets/images/database-logo.png')}
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    style={{ width: 48, height: 48 }}
+                    resizeMode="contain"
                   />
                   <ThemedText style={styles.resultItemTitleTxt}>
                     Database
@@ -754,7 +755,8 @@ export default function ModalDetectScreen() {
                 <View style={styles.resultItemTitleSection}>
                   <Image
                     source={require('@/assets/images/similarity-logo.png')}
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    style={{ width: 48, height: 48 }}
+                    resizeMode="contain"
                   />
                   <ThemedText style={styles.resultItemTitleTxt}>
                     Similaridade

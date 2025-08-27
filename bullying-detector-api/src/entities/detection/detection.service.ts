@@ -29,25 +29,27 @@ export class DetectionService {
   }
 
   async save(detection: DetectionBaseDto, idUser?: number, filename?: string) {
+    const activeIA = false
     const databaseResult = await this.detectDatabase(detection.mainText)
     const similarityResult = await this.detectSimilarity(detection.mainText)
+    let mistralResult = null
+    let cohereResult = null
+    let deepSeekResult = null
 
-    // const mistralResult = await this.detectMistral(
-    //   detection.mainText,
-    //   detection.context,
-    // )
-    // const cohereResult = await this.detectCohere(
-    //   detection.mainText,
-    //   detection.context,
-    // )
-    // const deepSeekResult = await this.detectDeepSeek(
-    //   detection.mainText,
-    //   detection.context,
-    // )
-
-    const mistralResult = null
-    const cohereResult = null
-    const deepSeekResult = null
+    if (activeIA) {
+      mistralResult = await this.detectMistral(
+        detection.mainText,
+        detection.context,
+      )
+      cohereResult = await this.detectCohere(
+        detection.mainText,
+        detection.context,
+      )
+      deepSeekResult = await this.detectDeepSeek(
+        detection.mainText,
+        detection.context,
+      )
+    }
 
     // Cria array com IA que retornaram resultado
     const iaResults = [mistralResult, cohereResult, deepSeekResult].filter(

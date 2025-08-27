@@ -22,6 +22,7 @@ import { DetectionService } from '@/services/DetectionService'
 import * as FileSystem from 'expo-file-system'
 import { RFValue } from 'react-native-responsive-fontsize'
 import Toast from 'react-native-toast-message'
+import ModalText from '@/components/modals/ModalText'
 
 export default function RecordScreen() {
   const detectionService = useMemo(() => new DetectionService(), [])
@@ -33,6 +34,15 @@ export default function RecordScreen() {
   const [sound, setSound] = useState<Audio.Sound | null>(null)
   const [permissionResponse, requestPermission] = Audio.usePermissions()
   const { colors, theme } = useTheme()
+  const [modalTextConfig, setModalTextConfig] = useState<{
+    visible: boolean
+    title: string
+    text: string
+  }>({
+    visible: false,
+    title: '',
+    text: '',
+  })
 
   const fetchAllAudio = async () => {
     setLoading(true)
@@ -163,6 +173,10 @@ export default function RecordScreen() {
     }).start()
   }
 
+  const handleModalText = (visible: boolean, text = '', title = '') => {
+    setModalTextConfig({ visible, text, title })
+  }
+
   return (
     <ThemedSafeView style={styles.container}>
       <View style={styles.viewRecord}>
@@ -222,29 +236,45 @@ export default function RecordScreen() {
           {detectionList && detectionList.length > 0 && (
             <ScrollView>
               {detectionList.map((detection) => (
-                <Pressable
+                <View
                   key={detection.idDetection}
-                  onPress={() => {
-                    router.push(`/modal-detect/${detection.idDetection}`)
-                  }}
-                  style={[
-                    styles.btnAccess,
-                    { borderColor: colors.mutedStrong },
-                  ]}
+                  style={[styles.access, { borderColor: colors.mutedStrong }]}
                 >
-                  <ThemedText style={styles.btnAccessText}>
-                    {detection.mainText.length > 50
-                      ? `${detection.mainText.substring(0, 50)}...`
-                      : detection.mainText}
-                  </ThemedText>
-                  <View style={styles.btnAccessIconSection}>
+                  <Pressable
+                    style={{ width: 258 }}
+                    onPress={() =>
+                      handleModalText(
+                        true,
+                        detection.mainText,
+                        'Detecção de Assédio'
+                      )
+                    }
+                  >
+                    <ThemedText
+                      numberOfLines={2}
+                      ellipsizeMode="tail"
+                      style={styles.accessText}
+                    >
+                      {detection.mainText}
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable
+                    style={{
+                      padding: 8,
+                      borderRadius: '100%',
+                      width: 40,
+                    }}
+                    onPress={() => {
+                      router.push(`/modal-detect/${detection.idDetection}`)
+                    }}
+                  >
                     <Ionicons
                       name="chevron-forward"
                       size={24}
                       color={Colors.light.primary}
                     />
-                  </View>
-                </Pressable>
+                  </Pressable>
+                </View>
               ))}
             </ScrollView>
           )}
@@ -273,6 +303,13 @@ export default function RecordScreen() {
           )}
         </View>
       </View>
+
+      <ModalText
+        visible={modalTextConfig.visible}
+        title={modalTextConfig.title}
+        text={modalTextConfig.text}
+        handleClose={() => handleModalText(false)}
+      />
     </ThemedSafeView>
   )
 }
@@ -335,20 +372,19 @@ const styles = StyleSheet.create({
     height: 96,
     marginTop: 16,
   },
-  btnAccess: {
+  access: {
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderColor: Colors.light.mutedStrong,
   },
-  btnAccessText: {
+  accessText: {
     flex: 1,
-  },
-  btnAccessIconSection: {
-    marginLeft: 8,
-    padding: 4,
   },
   detectionSectionLoading: {
     flex: 1,

@@ -15,5 +15,11 @@ export function ThemedSafeView({
   const { colors } = useTheme()
   const backgroundColor = colors.background
 
-  return <SafeAreaView style={[{ backgroundColor }, style]} {...otherProps} />
+  return (
+    <SafeAreaView
+      style={[{ backgroundColor }, style]}
+      edges={['top', 'left', 'right']}
+      {...otherProps}
+    />
+  )
 }
