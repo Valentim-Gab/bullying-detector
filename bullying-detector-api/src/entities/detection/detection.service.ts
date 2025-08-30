@@ -9,11 +9,15 @@ import { firstValueFrom } from 'rxjs'
 import { HttpStatusCode } from 'axios'
 import { Response } from 'express'
 import { SimpleDetection } from 'src/interfaces/detection.interface'
-import { DetectionBaseDto } from './dto/detection-base-dto'
+import { DetectionBaseDto } from './dto/detection-base.dto'
 import { DetectionConstants } from 'src/constants/detection.constant'
+import { DetectionHookDto } from './dto/detection-hook.dto'
+import { DetectionBatchDto } from './dto/detection-batch.dto'
 
 @Injectable()
 export class DetectionService {
+  activeIA = false
+
   constructor(
     private fileUtil: FileUtil,
     private prisma: PrismaService,
@@ -28,15 +32,18 @@ export class DetectionService {
     return transcribedText
   }
 
-  async save(detection: DetectionBaseDto, idUser?: number, filename?: string) {
-    const activeIA = false
+  async buildDetection(
+    detection: DetectionBaseDto,
+    idUser?: number,
+    filename?: string,
+  ): Promise<Omit<Detection, 'idDetection'>> {
     const databaseResult = await this.detectDatabase(detection.mainText)
     const similarityResult = await this.detectSimilarity(detection.mainText)
     let mistralResult = null
     let cohereResult = null
     let deepSeekResult = null
 
-    if (activeIA) {
+    if (this.activeIA) {
       mistralResult = await this.detectMistral(
         detection.mainText,
         detection.context,
@@ -92,20 +99,93 @@ export class DetectionService {
       avaliation: avaliation,
       idPhrase: databaseResult.idPhrase ?? null,
       idUser: idUser,
-      externalId: detection.externalId,
-      externalModule: detection.externalModule,
+      externalId: detection.external?.id ?? null,
+      externalModule: detection.external?.module ?? null,
     }
+
+    return newDetection
+  }
+
+  async save(detection: DetectionBaseDto, idUser?: number, filename?: string) {
+    const newDetection = await this.buildDetection(detection, idUser, filename)
 
     return this.prismaUtil.performOperation(
       'Não foi possível realizar a detecção',
       async () => {
-        const detection = await this.prisma.detection.create({
+        const createdDetection = await this.prisma.detection.create({
           data: newDetection,
         })
 
-        return detection
+        if (
+          detection.hook.hookUrl &&
+          detection.hook.hookMethod &&
+          detection.hook.hookAvaliationBodyKey
+        ) {
+          this.updateExternalHook<Record<string, number>>(detection.hook, {
+            [detection.hook.hookAvaliationBodyKey]: newDetection.avaliation,
+            [detection.hook.hookIdBodyKey || 'id']: detection.external.id,
+          })
+        }
+
+        return createdDetection
       },
     )
+  }
+
+  async saveBatch(detectionBatch: DetectionBatchDto, idUser?: number) {
+    const newDetections = await Promise.all(
+      detectionBatch.detections.map((detection) =>
+        this.buildDetection(detection, idUser, undefined),
+      ),
+    )
+
+    return this.prismaUtil.performOperation(
+      'Não foi possível realizar a detecção',
+      async () => {
+        const createdDetection = await this.prisma.detection.createMany({
+          data: newDetections,
+        })
+
+        if (
+          detectionBatch.hook.hookUrl &&
+          detectionBatch.hook.hookMethod &&
+          detectionBatch.hook.hookAvaliationBodyKey
+        ) {
+          const updateHookData = newDetections.map((d) => ({
+            [detectionBatch.hook.hookAvaliationBodyKey]: d.avaliation,
+            [detectionBatch.hook.hookIdBodyKey || 'id']: d.externalId,
+          }))
+
+          this.updateExternalHook<Array<Record<string, number>>>(
+            detectionBatch.hook,
+            updateHookData,
+          )
+        }
+
+        return createdDetection
+      },
+    )
+  }
+
+  private async updateExternalHook<T>(hook: DetectionHookDto, data: T) {
+    try {
+      const res = await firstValueFrom(
+        this.httpService.request({
+          url: hook.hookUrl,
+          method: hook.hookMethod,
+          headers: {
+            Authorization: hook.hookToken
+              ? `Bearer ${hook.hookToken}`
+              : undefined,
+          },
+          data: data,
+        }),
+      )
+
+      return res.data
+    } catch (error) {
+      console.error('Erro ao chamar webhook:', error)
+    }
   }
 
   async saveFile(file: Express.Multer.File, idUser: number) {
@@ -356,5 +436,9 @@ export class DetectionService {
         idPhrase: idPhrase,
       },
     })
+  }
+
+  async deleteAll(): Promise<void> {
+    await this.prisma.detection.deleteMany()
   }
 }

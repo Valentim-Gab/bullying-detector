@@ -1,5 +1,3 @@
-// npx prisma generate --schema=prisma/ufsm-schema.prisma
-
 generator clientUfsm {
   provider = "prisma-client-js"
   output   = "./generated/clientUfsm"
@@ -11,8 +9,10 @@ datasource ufsmDb {
 }
 
 model Avaliation {
-  idAvaliation Int    @id @default(autoincrement()) @map("id_avaliation")
-  mainText     String @map("main_text")
+  idAvaliation Int      @id @default(autoincrement()) @map("id_avaliation")
+  mainText     String?  @map("main_text")
+  detected     Boolean?
+  avaliation   Float?
 
   @@map("avaliation")
 }

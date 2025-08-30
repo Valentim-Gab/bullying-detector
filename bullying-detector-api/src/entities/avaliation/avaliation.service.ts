@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { Avaliation } from 'prisma/generated/clientUfsm'
+import { Avaliation, Prisma } from 'prisma/generated/clientUfsm'
 import { PrismaUfsmService } from 'src/connections/prisma-ufsm/prisma-ufsm.service'
+import { AvaliationDetectionDto } from './dto/avaliation-detection.dto'
 
 @Injectable()
 export class AvaliationService {
@@ -13,6 +14,7 @@ export class AvaliationService {
   async getAllPagination(
     page = 1,
     perPage = 10,
+    search?: string,
   ): Promise<{
     data: Avaliation[]
     total: number
@@ -22,13 +24,23 @@ export class AvaliationService {
   }> {
     const skip = (page - 1) * perPage
 
+    const where: Prisma.AvaliationWhereInput = search
+      ? {
+          mainText: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        }
+      : {}
+
     const [data, total] = await this.prismaUfsm.$transaction([
       this.prismaUfsm.avaliation.findMany({
         skip,
         take: perPage,
-        orderBy: { idAvaliation: 'asc' },
+        where,
+        orderBy: { idAvaliation: 'desc' }, // idAvaliation tá certo 👍
       }),
-      this.prismaUfsm.avaliation.count(),
+      this.prismaUfsm.avaliation.count({ where }),
     ])
 
     return {
@@ -38,5 +50,36 @@ export class AvaliationService {
       perPage,
       lastPage: Math.ceil(total / perPage),
     }
+  }
+
+  async updateDetection(
+    avaliationDetection: AvaliationDetectionDto,
+  ): Promise<Avaliation> {
+    return await this.prismaUfsm.avaliation.update({
+      where: { idAvaliation: avaliationDetection.id },
+      data: { detected: true, avaliation: avaliationDetection.avaliation },
+    })
+  }
+
+  async updateDetectionBatch(
+    avaliationDetections: AvaliationDetectionDto[],
+  ): Promise<Avaliation[]> {
+    await this.prismaUfsm.$transaction(
+      avaliationDetections.map((d) =>
+        this.prismaUfsm.avaliation.update({
+          where: { idAvaliation: d.id },
+          data: {
+            detected: true,
+            avaliation: d.avaliation,
+          },
+        }),
+      ),
+    )
+
+    return this.prismaUfsm.avaliation.findMany({
+      where: {
+        idAvaliation: { in: avaliationDetections.map((d) => d.id) },
+      },
+    })
   }
 }

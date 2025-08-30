@@ -95,7 +95,9 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 exports.Prisma.AvaliationScalarFieldEnum = {
   idAvaliation: 'idAvaliation',
-  mainText: 'mainText'
+  mainText: 'mainText',
+  detected: 'detected',
+  avaliation: 'avaliation'
 };
 
 exports.Prisma.SortOrder = {
@@ -106,6 +108,11 @@ exports.Prisma.SortOrder = {
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
+};
+
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
 };
 
 
@@ -123,7 +130,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\gabriel.arruda\\Desktop\\Projects\\Pessoal\\bullying-detector\\bullying-detector-api\\prisma\\generated\\clientUfsm",
+      "value": "C:\\Users\\gabri\\OneDrive\\Área de Trabalho\\Utils\\Projects\\bullying-detector\\bullying-detector-api\\prisma\\generated\\clientUfsm",
       "fromEnvVar": null
     },
     "config": {
@@ -137,7 +144,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\gabriel.arruda\\Desktop\\Projects\\Pessoal\\bullying-detector\\bullying-detector-api\\prisma\\ufsm-schema.prisma",
+    "sourceFilePath": "C:\\Users\\gabri\\OneDrive\\Área de Trabalho\\Utils\\Projects\\bullying-detector\\bullying-detector-api\\prisma\\ufsm-schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -160,8 +167,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// npx prisma generate --schema=prisma/ufsm-schema.prisma\n\ngenerator clientUfsm {\n  provider = \"prisma-client-js\"\n  output   = \"./generated/clientUfsm\"\n}\n\ndatasource ufsmDb {\n  provider = \"postgresql\"\n  url      = env(\"UFSM_DATABASE_URL\")\n}\n\nmodel Avaliation {\n  idAvaliation Int    @id @default(autoincrement()) @map(\"id_avaliation\")\n  mainText     String @map(\"main_text\")\n\n  @@map(\"avaliation\")\n}\n",
-  "inlineSchemaHash": "d4fc70d5552426c2b2b038ba5ab503e12e847faf799b1db44336d674da4b9ba7",
+  "inlineSchema": "generator clientUfsm {\n  provider = \"prisma-client-js\"\n  output   = \"./generated/clientUfsm\"\n}\n\ndatasource ufsmDb {\n  provider = \"postgresql\"\n  url      = env(\"UFSM_DATABASE_URL\")\n}\n\nmodel Avaliation {\n  idAvaliation Int      @id @default(autoincrement()) @map(\"id_avaliation\")\n  mainText     String?  @map(\"main_text\")\n  detected     Boolean?\n  avaliation   Float?\n\n  @@map(\"avaliation\")\n}\n",
+  "inlineSchemaHash": "34c30ca44f9bb281818a242053f70b0b4c6939ca5df67bbccd3f65cf692e139b",
   "copyEngine": true
 }
 
@@ -182,7 +189,7 @@ if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
   config.isBundled = true
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Avaliation\":{\"dbName\":\"avaliation\",\"schema\":null,\"fields\":[{\"name\":\"idAvaliation\",\"dbName\":\"id_avaliation\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"mainText\",\"dbName\":\"main_text\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Avaliation\":{\"dbName\":\"avaliation\",\"schema\":null,\"fields\":[{\"name\":\"idAvaliation\",\"dbName\":\"id_avaliation\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"mainText\",\"dbName\":\"main_text\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"detected\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Boolean\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"avaliation\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Float\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = undefined
 config.compilerWasm = undefined

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -21,7 +22,8 @@ import { RolesGuard } from 'src/security/guards/roles.guard'
 import { Role } from 'src/enums/Role'
 import { Roles } from 'src/decorators/roles.decorator'
 import { Users } from '@prisma/client'
-import { DetectionBaseDto } from './dto/detection-base-dto'
+import { DetectionBaseDto } from './dto/detection-base.dto'
+import { DetectionBatchDto } from './dto/detection-batch.dto'
 
 @Controller('detection')
 export class DetectionController {
@@ -52,6 +54,16 @@ export class DetectionController {
     return this.detectionService.save(detection, user.id)
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.User, Role.Admin)
+  @Post('batch')
+  createBatch(
+    @Body(new ValidationPipe()) detectionBatch: DetectionBatchDto,
+    @ReqUser() user: Users,
+  ) {
+    return this.detectionService.saveBatch(detectionBatch, user.id)
+  }
+
   @Post('/public')
   createPublic(@Body(new ValidationPipe()) detection: DetectionBaseDto) {
     return this.detectionService.save(detection)
@@ -80,5 +92,10 @@ export class DetectionController {
     @Param('module') externalModule: string,
   ) {
     return this.detectionService.findByExternal(externalId, externalModule)
+  }
+
+  @Delete('all')
+  deleteAll() {
+    return this.detectionService.deleteAll()
   }
 }
