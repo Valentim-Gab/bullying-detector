@@ -42,7 +42,6 @@ async def detect_bullying_cohere_text(
     try:
         content = res.message.content[0].text.strip()
         parsed = json.loads(content)
-        print(f'COHERE: {parsed}')
 
         return JSONResponse(
             content={

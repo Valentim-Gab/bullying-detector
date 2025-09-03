@@ -54,7 +54,7 @@ async def detect_bullying_mistral_text(
 
     res = requests.post(url, headers=headers, json=data)
 
-    print(f"STATUS CODE: {res.status_code}", flush=True)
+    print(f"MISTRAL STATUS CODE: {res.status_code}", flush=True)
 
     if not res.ok:
         return JSONResponse(content={"detected": False, "error": "Erro na requisição à API da Mistral."})

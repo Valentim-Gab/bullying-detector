@@ -16,8 +16,6 @@ import { DetectionBatchDto } from './dto/detection-batch.dto'
 
 @Injectable()
 export class DetectionService {
-  activeIA = false
-
   constructor(
     private fileUtil: FileUtil,
     private prisma: PrismaService,
@@ -37,29 +35,33 @@ export class DetectionService {
     idUser?: number,
     filename?: string,
   ): Promise<Omit<Detection, 'idDetection'>> {
-    const databaseResult = await this.detectDatabase(detection.mainText)
-    const similarityResult = await this.detectSimilarity(detection.mainText)
-    let mistralResult = null
-    let cohereResult = null
-    let deepSeekResult = null
+    // const [databaseResult, similarityResult] = await Promise.all([
+    //   this.detectDatabase(detection.mainText),
+    //   this.detectSimilarity(detection.mainText),
+    // ])
 
-    if (this.activeIA) {
-      mistralResult = await this.detectMistral(
-        detection.mainText,
-        detection.context,
-      )
-      cohereResult = await this.detectCohere(
-        detection.mainText,
-        detection.context,
-      )
-      deepSeekResult = await this.detectDeepSeek(
-        detection.mainText,
-        detection.context,
-      )
-    }
+    // const mistralResult = null
+    // const cohereResult = null
+    // const geminiResult = null
+
+    const [
+      mistralResult,
+      cohereResult,
+      deepSeekResult,
+      geminiResult,
+      databaseResult,
+      similarityResult,
+    ] = await Promise.all([
+      this.detectMistral(detection.mainText, detection.context),
+      this.detectCohere(detection.mainText, detection.context),
+      null, // this.detectDeepSeek(detection.mainText, detection.context),
+      this.detectGemini(detection.mainText, detection.context),
+      this.detectDatabase(detection.mainText),
+      this.detectSimilarity(detection.mainText),
+    ])
 
     // Cria array com IA que retornaram resultado
-    const iaResults = [mistralResult, cohereResult, deepSeekResult].filter(
+    const iaResults = [mistralResult, cohereResult, geminiResult].filter(
       (r) => r && r.detected === true,
     )
 
@@ -91,6 +93,8 @@ export class DetectionService {
       cohereMessage: cohereResult?.message,
       deepseekResult: deepSeekResult?.avaliation ?? null,
       deepseekMessage: deepSeekResult?.message,
+      geminiResult: geminiResult?.avaliation ?? null,
+      geminiMessage: geminiResult?.message,
       databaseResult: databaseResult.avaliation ?? null,
       databaseUserDetect: databaseResult.databaseUserDetect,
       databaseUsersApprove: null,
@@ -318,6 +322,29 @@ export class DetectionService {
       return res.data
     } catch (error) {
       console.error('Erro ao fazer requisição para FastAPI:', error)
+    }
+  }
+
+  async detectGemini(
+    text: string,
+    context?: string,
+  ): Promise<SimpleDetection | null> {
+    let url = `${this.config.get('detectApiUrl')}/detect/gemini/text?text_input=${encodeURIComponent(text)}`
+
+    if (context) {
+      url += `&context_input=${encodeURIComponent(context)}`
+    }
+
+    try {
+      const res = await firstValueFrom(this.httpService.get(url))
+
+      if (!res || res.status != HttpStatusCode.Ok) {
+        return null
+      }
+
+      return res.data
+    } catch (error) {
+      console.error('Erro ao fazer requisição para FastAPI Gemini:', error)
     }
   }
 
