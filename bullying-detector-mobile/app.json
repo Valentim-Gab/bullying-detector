@@ -41,7 +41,7 @@
     },
     "extra": {
       // "apiUrl": "https://bullying-detector-api.valentim.software",
-      "apiUrl": "http://192.168.0.5:3000",
+      "apiUrl": "http://192.168.0.6:3000",
       "router": {
         "origin": false
       },

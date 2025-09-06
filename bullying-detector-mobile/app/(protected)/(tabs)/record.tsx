@@ -46,17 +46,20 @@ export default function RecordScreen() {
 
   const fetchAllAudio = async () => {
     setLoading(true)
+    try {
+      const data = await detectionService.getAll()
 
-    const data = await detectionService.getAll()
-
-    if (data) {
-      setDetectionList(data)
+      if (data) {
+        setDetectionList(data)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar detecções:', error)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
-  async function startRecording() {
+  const startRecording = async () => {
     try {
       if (permissionResponse && permissionResponse.status !== 'granted') {
         await requestPermission()
@@ -82,21 +85,22 @@ export default function RecordScreen() {
     }
   }
 
-  async function stopRecording() {
+  const stopRecording = async () => {
     setLoadingDetect(true)
     setRecording(undefined)
     await recording.stopAndUnloadAsync()
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
     })
-    const uri = recording.getURI()
 
     // Mover o arquivo para o diretório de documentos
+    const uri = recording.getURI()
     const newUri = `${FileSystem.documentDirectory}recording.m4a`
     await FileSystem.moveAsync({
       from: uri,
       to: newUri,
     })
+
     setAudioUri(newUri)
 
     const recordCover = {
@@ -104,8 +108,8 @@ export default function RecordScreen() {
       type: 'audio/m4a',
       name: 'recording.m4a',
     }
-
     const result = await detect(recordCover)
+
     // Reproduzir o áudio após parar a gravação
     await playSound(newUri)
     setLoadingDetect(false)
@@ -115,33 +119,23 @@ export default function RecordScreen() {
     }
   }
 
-  async function playSound(uri: string) {
+  const playSound = async (uri: string) => {
     const { sound } = await Audio.Sound.createAsync({ uri })
 
     setSound(sound)
     await sound.playAsync()
   }
 
-  async function detect(recordCover: any) {
-    const times = 4
-
-    let isSuccess = await detectionService.detectAudio(recordCover)
-
-    // for (let i = 0; i < times; i++) {
-    //   if (!isSuccess) {
-    //     isSuccess = await audioService.detect(recordCover)
-    //   }
-    // }
-
-    if (!isSuccess) {
+  const detect = async (recordCover: any) => {
+    try {
+      return await detectionService.detectAudio(recordCover)
+    } catch {
       Toast.show({
         type: 'error',
         text1: 'Falha ao processar áudio',
         text1Style: { fontSize: RFValue(14) },
       })
     }
-
-    return isSuccess
   }
 
   useEffect(() => {

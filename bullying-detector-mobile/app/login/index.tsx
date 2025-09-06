@@ -21,6 +21,7 @@ import { User } from '@/interfaces/User'
 import { useEffect, useState } from 'react'
 import { ThemedText } from '@/components/ThemedText'
 import { useAuth } from '@/hooks/useAuth'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import * as SecureStore from 'expo-secure-store'
 import ButtonPrimary from '@/components/buttons/ButtonPrimary'
 import InputPrimary from '@/components/inputs/InputPrimary'
@@ -40,7 +41,6 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false)
   const { colors } = useTheme()
   const { isAuthenticated } = useAuth()
-  const queryClient = useQueryClient()
   const {
     control,
     handleSubmit,
@@ -96,91 +96,97 @@ export default function LoginScreen() {
   }, [isAuthenticated])
 
   return (
-    <ThemedSafeView style={styles.container}>
-      <Image
-        source={require('@/assets/images/logos/logo.png')}
-        alt="Logo"
-        style={styles.image}
-      />
-      <View style={styles.formFieldView}>
-        <Controller
-          control={control}
-          name="username"
-          render={({ field: { onChange, value } }) => (
-            <InputPrimary
-              label="Email"
-              placeholder="Digite seu email"
-              value={value}
-              onChangeText={onChange}
-            />
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+      enableOnAndroid
+      keyboardShouldPersistTaps="handled"
+    >
+      <ThemedSafeView style={styles.container}>
+        <Image
+          source={require('@/assets/images/logos/logo.png')}
+          alt="Logo"
+          style={styles.image}
+        />
+        <View style={styles.formFieldView}>
+          <Controller
+            control={control}
+            name="username"
+            render={({ field: { onChange, value } }) => (
+              <InputPrimary
+                label="Email"
+                placeholder="Digite seu email"
+                value={value}
+                onChangeText={onChange}
+              />
+            )}
+          />
+          {errors.username && (
+            <Text style={[styles.error, { color: colors.negative }]}>
+              {errors.username.message}
+            </Text>
           )}
-        />
-        {errors.username && (
-          <Text style={[styles.error, { color: colors.negative }]}>
-            {errors.username.message}
-          </Text>
-        )}
-      </View>
-
-      <View style={styles.formFieldView}>
-        <Controller
-          control={control}
-          name="password"
-          render={({ field: { onChange, value } }) => (
-            <InputPrimary
-              label="Senha"
-              placeholder="Digite sua senha"
-              value={value}
-              secureTextEntry={!showPassword}
-              leftIcon={
-                <Ionicons
-                  name={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                  size={RFValue(24)}
-                  color={colors.placeholder}
-                  onPress={handleShowPassword}
-                />
-              }
-              onChangeText={onChange}
-            />
-          )}
-        />
-        {errors.password && (
-          <Text style={[styles.error, { color: colors.negative }]}>
-            {errors.password.message}
-          </Text>
-        )}
-      </View>
-
-      <View style={{ width: '100%', marginTop: 24 }}>
-        <ButtonPrimary
-          title="Login"
-          icon={
-            <Ionicons
-              name="log-in-outline"
-              size={RFValue(20)}
-              color="#fff"
-              style={{ marginRight: 8 }}
-            />
-          }
-          onPress={handleSubmit(onSubmit)}
-        />
-      </View>
-      <Modal visible={isLoading} transparent animationType="fade">
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size={RFValue(52)} color="#fff" />
-          <ThemedText type="small" style={{ marginTop: 16 }}>
-            Validando credenciais...
-          </ThemedText>
         </View>
-      </Modal>
-    </ThemedSafeView>
+
+        <View style={styles.formFieldView}>
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, value } }) => (
+              <InputPrimary
+                label="Senha"
+                placeholder="Digite sua senha"
+                value={value}
+                secureTextEntry={!showPassword}
+                leftIcon={
+                  <Ionicons
+                    name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                    size={RFValue(24)}
+                    color={colors.placeholder}
+                    onPress={handleShowPassword}
+                  />
+                }
+                onChangeText={onChange}
+              />
+            )}
+          />
+          {errors.password && (
+            <Text style={[styles.error, { color: colors.negative }]}>
+              {errors.password.message}
+            </Text>
+          )}
+        </View>
+
+        <View style={{ width: '100%', marginTop: 24 }}>
+          <ButtonPrimary
+            title="Login"
+            icon={
+              <Ionicons
+                name="log-in-outline"
+                size={RFValue(20)}
+                color="#fff"
+                style={{ marginRight: 8 }}
+              />
+            }
+            onPress={handleSubmit(onSubmit)}
+          />
+        </View>
+        <Modal visible={isLoading} transparent animationType="fade">
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <ActivityIndicator size={RFValue(52)} color="#fff" />
+            <ThemedText type="small" style={{ marginTop: 16 }}>
+              Validando credenciais...
+            </ThemedText>
+          </View>
+        </Modal>
+      </ThemedSafeView>
+    </KeyboardAwareScrollView>
   )
 }
 
@@ -199,7 +205,7 @@ const styles = StyleSheet.create({
   },
   formFieldView: {
     width: '100%',
-    marginBottom: 24,
+    marginBottom: 16,
     alignItems: 'flex-start',
   },
   error: {

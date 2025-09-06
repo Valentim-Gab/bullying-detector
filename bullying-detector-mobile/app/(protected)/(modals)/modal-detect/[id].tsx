@@ -54,15 +54,19 @@ export default function ModalDetectScreen() {
   }
 
   const fetchDetection = async (id: number) => {
-    setLoading(true)
+    try {
+      setLoading(true)
 
-    const data = await detectionService.find(id)
+      const data = await detectionService.find(id)
 
-    if (data) {
-      setDetection(data)
+      if (data) {
+        setDetection(data)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar detecção:', error)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   useEffect(() => {
@@ -124,7 +128,7 @@ export default function ModalDetectScreen() {
     return databaseResult.UNDETECTED
   }
 
-  async function playSound(filename: string | null) {
+  const playSound = async (filename: string | null) => {
     if (!filename) {
       return
     }
