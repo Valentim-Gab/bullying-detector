@@ -3,9 +3,7 @@ import {
   Animated,
   Pressable,
   PressableProps,
-  StyleProp,
   StyleSheet,
-  ViewProps,
 } from 'react-native'
 import { ThemedText } from '../ThemedText'
 import { useTheme } from '@/hooks/useTheme'
@@ -67,7 +65,11 @@ export default function ButtonPrimary(props: ButtonPrimaryProps) {
         {props.icon && props.icon}
         {props.title && (
           <ThemedText
-            style={[styles.text, props.outline && styles.outlineText]}
+            style={
+              props.flat
+                ? { color: props.color }
+                : [styles.text, props.outline && styles.outlineText]
+            }
           >
             {props.title}
           </ThemedText>

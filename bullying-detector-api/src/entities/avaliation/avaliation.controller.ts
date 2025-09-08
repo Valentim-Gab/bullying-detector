@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  ParseBoolPipe,
   Patch,
   Query,
   UseGuards,
@@ -31,6 +32,8 @@ export class AvaliationController {
     @Query('page') page = 1,
     @Query('perPage') perPage = 10,
     @Query('search') search?: string,
+    @Query('detected', new ParseBoolPipe({ optional: true }))
+    detected?: boolean,
   ) {
     const pageNumber = Number(page)
     const perPageNumber = Number(perPage)
@@ -50,6 +53,7 @@ export class AvaliationController {
       pageNumber,
       perPageNumber,
       search,
+      detected,
     )
   }
 

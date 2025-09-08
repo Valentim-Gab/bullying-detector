@@ -1,7 +1,13 @@
 import { ThemedSafeView } from '@/components/ThemedSafeView'
 import { ThemedText } from '@/components/ThemedText'
 import { useTheme } from '@/hooks/useTheme'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  InfiniteData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { AvaliationService } from '@/services/AvaliationService'
 import {
   FlatList,
@@ -13,6 +19,7 @@ import {
   Pressable,
   Platform,
   ToastAndroid,
+  ActivityIndicator,
 } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { DetectionService } from '@/services/DetectionService'
@@ -24,6 +31,7 @@ import { RFValue } from 'react-native-responsive-fontsize'
 import { Detection, DetectionData } from '@/interfaces/Detection'
 import { Avaliation } from '@/interfaces/Avaliation'
 import { debounce } from 'lodash'
+import { Pagination } from '@/interfaces/Pagintation'
 import ButtonPrimary from '@/components/buttons/ButtonPrimary'
 import Loading from '@/components/Loading'
 import Toast from 'react-native-toast-message'
@@ -42,9 +50,8 @@ export default function AvaliationScreen() {
   const avaliationService = new AvaliationService()
   const detectionService = new DetectionService()
   const [searchText, setSearchText] = useState<string>('')
-  const [filteredAvaliations, setFilteredAvaliations] = useState<Avaliation[]>(
-    []
-  )
+  const [debouncedSearch, setDebouncedSearch] = useState(searchText)
+  const [perPage] = useState(10)
 
   const [modalTextConfig, setModalTextConfig] = useState<{
     visible: boolean
@@ -56,9 +63,55 @@ export default function AvaliationScreen() {
     text: '',
   })
 
-  const { data: avaliations, isLoading } = useQuery({
-    queryKey: ['get_avaliations'],
-    queryFn: () => avaliationService.getAll(),
+  useEffect(() => {
+    const handler = debounce((text: string) => {
+      setDebouncedSearch(text)
+    }, 500)
+
+    handler(searchText)
+
+    return () => {
+      handler.cancel()
+    }
+  }, [searchText])
+
+  const {
+    data: avaliations,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ['get_avaliations', perPage, debouncedSearch],
+    queryFn: async ({ pageParam = 1 }: { pageParam?: number }) => {
+      const result = await avaliationService.getAllPagination(
+        Number(pageParam),
+        perPage,
+        debouncedSearch,
+        false
+      )
+
+      if (!result) {
+        return {
+          data: [],
+          page: Number(pageParam),
+          lastPage: Number(pageParam),
+          perPage,
+          total: 0,
+        }
+      }
+
+      return result
+    },
+    getNextPageParam: (lastPage: Pagination<Avaliation>) => {
+      if (lastPage.page < lastPage.lastPage) {
+        return lastPage.page + 1
+      }
+
+      return undefined
+    },
+    initialPageParam: 1,
+    staleTime: 1000 * 60,
     retry: false,
   })
 
@@ -67,27 +120,6 @@ export default function AvaliationScreen() {
     queryFn: () => detectionService.getAll('UFSM'),
     retry: false,
   })
-
-  useEffect(() => {
-    if (!searchText || !avaliations) {
-      setFilteredAvaliations(avaliations ?? [])
-      return
-    }
-
-    const debouncedFilter = debounce((text: string) => {
-      setFilteredAvaliations(
-        avaliations.filter((avaliation) =>
-          (avaliation.mainText ?? '').toLowerCase().includes(text.toLowerCase())
-        )
-      )
-    }, 500)
-
-    debouncedFilter(searchText)
-
-    return () => {
-      debouncedFilter.cancel()
-    }
-  }, [avaliations, searchText])
 
   const handleDetect = async (avaliation: Avaliation) => {
     if (avaliation.idAvaliation == null) {
@@ -142,6 +174,12 @@ export default function AvaliationScreen() {
     setModalTextConfig({ visible, text, title })
   }
 
+  const handleLoadMore = () => {
+    if (hasNextPage) {
+      fetchNextPage()
+    }
+  }
+
   const detectMutation = useMutation({
     mutationKey: ['detect'],
     mutationFn: (detection: Detection) => detectionService.create(detection),
@@ -174,13 +212,15 @@ export default function AvaliationScreen() {
         case 'avaliations':
           return (
             <FirstRoute
-              data={filteredAvaliations}
+              avaliations={avaliations ?? null}
               isLoading={isLoading}
+              isFetchingNextPage={isFetchingNextPage}
               onRefresh={handleRefresh}
               searchText={searchText}
               setSearchText={setSearchText}
               onOpen={handleModalText}
               onDetect={handleDetect}
+              onLoadMore={handleLoadMore}
             />
           )
         case 'detections':
@@ -196,7 +236,7 @@ export default function AvaliationScreen() {
           return null
       }
     },
-    [filteredAvaliations, isLoading, handleRefresh, searchText]
+    [avaliations, isLoading, handleRefresh, searchText]
   )
 
   return (
@@ -274,28 +314,36 @@ const styles = StyleSheet.create({
 })
 
 const FirstRoute = React.memo(function FirstRoute({
-  data,
+  avaliations,
   isLoading,
+  isFetchingNextPage,
   onRefresh,
   searchText,
   setSearchText,
   onOpen,
   onDetect,
+  onLoadMore,
 }: {
-  data: Avaliation[]
+  avaliations: InfiniteData<Pagination<Avaliation>> | null
   isLoading: boolean
+  isFetchingNextPage: boolean
   onRefresh: () => void
   searchText: string
   setSearchText: (t: string) => void
   onOpen: (visible: boolean, text?: string, title?: string) => void
   onDetect: (item: Avaliation) => void
+  onLoadMore: () => void
 }) {
   const { colors } = useTheme()
   const logoMarkWhite = require('@/assets/images/logos/logomark-white.png')
 
   return (
     <FlatList
-      data={data ?? []}
+      data={
+        avaliations?.pages.flatMap((page) =>
+          page && page.data ? page.data : []
+        ) ?? []
+      }
       keyExtractor={(item, index) => String(item?.idAvaliation ?? index)}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
@@ -329,6 +377,26 @@ const FirstRoute = React.memo(function FirstRoute({
             </ThemedText>
           </View>
         </View>
+      }
+      ListFooterComponent={
+        avaliations &&
+        avaliations.pages.length > 0 &&
+        avaliations.pages[avaliations.pages.length - 1].page <
+          avaliations.pages[avaliations.pages.length - 1].lastPage ? (
+          <View style={{ alignItems: 'center', marginVertical: 8 }}>
+            {isFetchingNextPage ? (
+              <ActivityIndicator color={colors.primary} size="large" />
+            ) : (
+              <ButtonPrimary
+                title="Carregar mais"
+                dense
+                flat
+                color="primary"
+                onPress={onLoadMore}
+              />
+            )}
+          </View>
+        ) : null
       }
       renderItem={({ item, index }) => (
         <View

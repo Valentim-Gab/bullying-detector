@@ -15,6 +15,7 @@ export class AvaliationService {
     page = 1,
     perPage = 10,
     search?: string,
+    detected?: boolean,
   ): Promise<{
     data: Avaliation[]
     total: number
@@ -32,6 +33,10 @@ export class AvaliationService {
           },
         }
       : {}
+
+    if (detected != null) {
+      where.detected = detected || null
+    }
 
     const [data, total] = await this.prismaUfsm.$transaction([
       this.prismaUfsm.avaliation.findMany({
