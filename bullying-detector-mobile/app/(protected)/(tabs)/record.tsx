@@ -244,6 +244,28 @@ export default function RecordScreen() {
                       )
                     }
                   >
+                    <View>
+                      <ThemedText
+                        style={[
+                          styles.resultValue,
+                          {
+                            color:
+                              detection.avaliation >= 3
+                                ? colors.negative
+                                : colors.positive,
+                          },
+                        ]}
+                      >
+                        {detection && detection.avaliation.toFixed(2)}
+                        <ThemedText
+                          type="small"
+                          style={{ color: colors.mutedForeground }}
+                        >
+                          {' '}
+                          / 5
+                        </ThemedText>
+                      </ThemedText>
+                    </View>
                     <ThemedText
                       numberOfLines={2}
                       ellipsizeMode="tail"
@@ -254,9 +276,13 @@ export default function RecordScreen() {
                   </Pressable>
                   <Pressable
                     style={{
-                      padding: 8,
                       borderRadius: '100%',
                       width: 40,
+                      height: 40,
+                      borderWidth: 2,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderColor: colors.primary,
                     }}
                     onPress={() => {
                       router.push(`/modal-detect/${detection.idDetection}`)
@@ -394,5 +420,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
+  },
+  resultValue: {
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: 'bold',
   },
 })

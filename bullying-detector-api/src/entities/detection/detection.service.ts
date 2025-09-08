@@ -121,6 +121,7 @@ export class DetectionService {
         })
 
         if (
+          detection.hook &&
           detection.hook.hookUrl &&
           detection.hook.hookMethod &&
           detection.hook.hookAvaliationBodyKey
@@ -151,6 +152,7 @@ export class DetectionService {
         })
 
         if (
+          detectionBatch.hook &&
           detectionBatch.hook.hookUrl &&
           detectionBatch.hook.hookMethod &&
           detectionBatch.hook.hookAvaliationBodyKey

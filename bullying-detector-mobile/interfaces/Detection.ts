@@ -2,8 +2,20 @@ export interface Detection {
   idDetection?: number
   mainText: string
   context: string | null
-  externalModule?: string
-  externalId?: number
+  external?: DetectionExternal
+  hook?: DetectionHook
+}
+
+export interface DetectionExternal {
+  id: number
+  module: string
+}
+
+export interface DetectionHook {
+  hookMethod: 'POST' | 'PUT' | 'PATCH'
+  hookUrl: string
+  hookIdBodyKey: string
+  hookAvaliationBodyKey: string
 }
 
 export interface DetectionData extends Detection {
