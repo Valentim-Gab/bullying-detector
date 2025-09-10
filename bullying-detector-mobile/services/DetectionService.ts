@@ -1,6 +1,6 @@
 import { environment } from '@/environments/environment'
 import { HttpStatusCode } from 'axios'
-import { Detection, DetectionData } from '@/interfaces/Detection'
+import { Detection, DetectionData, DetectionHook } from '@/interfaces/Detection'
 import axiosService from './interceptors/AxiosService'
 
 export class DetectionService {
@@ -19,6 +19,18 @@ export class DetectionService {
 
   async create(detection: Detection) {
     const res = await axiosService.post(this.apiUrl, detection)
+    return res.data
+  }
+
+  async createBatch(detections: Detection[], hook: DetectionHook) {
+    const res = await axiosService.post(
+      `${this.apiUrl}/batch`,
+      {
+        detections,
+        hook,
+      },
+      { timeout: 60 * 60 * 1000 }
+    )
     return res.data
   }
 

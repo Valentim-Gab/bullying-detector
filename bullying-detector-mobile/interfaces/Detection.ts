@@ -24,6 +24,8 @@ export interface DetectionData extends Detection {
   mistralMessage: string | null
   cohereResult: number | null
   cohereMessage: string | null
+  geminiResult: number | null
+  geminiMessage: string | null
   deepseekResult: number | null
   deepseekMessage: string | null
   databaseResult: number | null

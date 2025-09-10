@@ -148,12 +148,17 @@ export default function ModalDetectScreen() {
   }
 
   const getDetectionCalculation = (detection: DetectionData | null) => {
-    if (!detection) return ['0']
+    if (!detection) {
+      return {
+        calculationKeys: 'Cálculo não encontrado',
+        calculationValues: '0',
+      }
+    }
 
     const {
       mistralResult,
       cohereResult,
-      deepseekResult,
+      geminiResult,
       databaseResult = 0,
       similarityResult = 0,
     } = detection
@@ -162,11 +167,11 @@ export default function ModalDetectScreen() {
     const llmValues = [
       { key: 'mistral', value: mistralResult },
       { key: 'cohere', value: cohereResult },
-      { key: 'deepseek', value: deepseekResult },
+      { key: 'gemini', value: geminiResult },
     ].filter((item) => item.value !== null)
 
     const llmKeys = llmValues.map((item) => item.key)
-    const llmNums = llmValues.map((item) => item.value!) // não-null assert
+    const llmNums = llmValues.map((item) => item.value ?? 0)
 
     let formulaSymbol = ''
     let formulaNumeric = ''
@@ -197,10 +202,10 @@ export default function ModalDetectScreen() {
 
     const total = llmAverage + (databaseResult ?? 0) + (similarityResult ?? 0)
 
-    return [
-      `${partsSymbol.join(' + ')} = ${total.toFixed(2)}`,
-      `${partsNumeric.join(' + ')} = ${total.toFixed(2)}`,
-    ]
+    return {
+      calculationKeys: `${partsSymbol.join(' + ')} = ${total.toFixed(2)}`,
+      calculationValues: `${partsNumeric.join(' + ')} = ${total.toFixed(2)}`,
+    }
   }
 
   const handleModalDatabase = (value: boolean) => {
@@ -363,12 +368,13 @@ export default function ModalDetectScreen() {
                       <Pressable
                         style={{ alignItems: 'center' }}
                         onPress={() => {
-                          const calculation = getDetectionCalculation(detection)
+                          const { calculationKeys, calculationValues } =
+                            getDetectionCalculation(detection)
 
                           setModalTextConfig({
                             visible: true,
                             title: 'Cálculo da detecção',
-                            text: `${calculation[0]}\n\nValores numéricos:\n${calculation[1]}`,
+                            text: `${calculationKeys}\n\nValores numéricos:\n${calculationValues}`,
                           })
                         }}
                       >
@@ -581,6 +587,89 @@ export default function ModalDetectScreen() {
               >
                 <View style={styles.resultItemTitleSection}>
                   <Image
+                    source={require('@/assets/images/gemini-logo.png')}
+                    style={{ width: 48, height: 48 }}
+                    resizeMode="contain"
+                  />
+                  <ThemedText style={styles.resultItemTitleTxt}>
+                    Gemini AI
+                  </ThemedText>
+                  {detection && detection.geminiResult != null ? (
+                    <View style={{ height: 48, justifyContent: 'flex-end' }}>
+                      <ThemedText
+                        style={[
+                          styles.resultValue,
+                          {
+                            color:
+                              detection.geminiResult >= 3
+                                ? colors.negative
+                                : colors.positive,
+                          },
+                        ]}
+                      >
+                        {detection && detection.geminiResult}
+                        <ThemedText
+                          type="small"
+                          style={{ color: colors.mutedForeground }}
+                        >
+                          {' '}
+                          / 5
+                        </ThemedText>
+                      </ThemedText>
+                    </View>
+                  ) : (
+                    <Ionicons
+                      name="close-circle"
+                      size={48}
+                      color={colors.negative}
+                    />
+                  )}
+                  {!detection && loading && (
+                    <ActivityIndicator
+                      color={Colors.light.primary}
+                      size="large"
+                    />
+                  )}
+                </View>
+                {detection &&
+                detection.geminiMessage &&
+                detection.geminiResult != null ? (
+                  <Pressable
+                    style={{ marginTop: 8, alignItems: 'center' }}
+                    onPress={() => {
+                      setModalTextConfig({
+                        visible: true,
+                        title: 'Justificativa da Gemini AI',
+                        text: detection?.geminiMessage ?? '-',
+                      })
+                    }}
+                  >
+                    <ThemedText
+                      style={{
+                        color: colors.secondaryLight,
+                        fontWeight: 'semibold',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Justificativa
+                    </ThemedText>
+                  </Pressable>
+                ) : (
+                  <View style={{ marginTop: 8, alignItems: 'center' }}>
+                    <ThemedText style={{ textAlign: 'center' }}>
+                      {detection?.geminiResult == null
+                        ? 'Falha na detecção'
+                        : detection?.geminiMessage ?? 'Não disponível'}
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
+
+              {/* <View
+                style={[styles.resultItem, { borderColor: colors.mutedStrong }]}
+              >
+                <View style={styles.resultItemTitleSection}>
+                  <Image
                     source={require('@/assets/images/deepseek-logo.png')}
                     style={{ width: 48, height: 48 }}
                     resizeMode="contain"
@@ -657,7 +746,7 @@ export default function ModalDetectScreen() {
                     </ThemedText>
                   </View>
                 )}
-              </View>
+              </View> */}
 
               <View>
                 <ThemedText style={{ textAlign: 'center', lineHeight: 12 }}>

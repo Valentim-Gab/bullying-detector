@@ -19,9 +19,9 @@ export function useAuth() {
     }
 
     try {
-      const isAuth = await checkAuth()
-      setIsAuthenticated(isAuth)
-    } catch {
+      await checkAuth()
+      setIsAuthenticated(true)
+    } catch (error) {
       setIsAuthenticated(false)
     } finally {
       setIsLoading(false)

@@ -8,13 +8,22 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { AvaliationService } from '@/services/AvaliationService'
-import { StyleSheet, Dimensions, Platform, ToastAndroid } from 'react-native'
+import {
+  StyleSheet,
+  Dimensions,
+  Platform,
+  ToastAndroid,
+  Image,
+  Modal,
+  View,
+  Pressable,
+} from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { DetectionService } from '@/services/DetectionService'
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view'
 import { router } from 'expo-router'
 import { RFValue } from 'react-native-responsive-fontsize'
-import { Detection } from '@/interfaces/Detection'
+import { Detection, DetectionHook } from '@/interfaces/Detection'
 import { Avaliation } from '@/interfaces/Avaliation'
 import { debounce } from 'lodash'
 import { Pagination } from '@/interfaces/Pagintation'
@@ -24,6 +33,9 @@ import ModalText from '@/components/modals/ModalText'
 import AvaliationFirstTab from '@/components/avaliations/AvaliationFirstTab'
 import AvaliationSecondTab from '@/components/avaliations/AvaliationSecondTab'
 import { environment } from '@/environments/environment'
+import ButtonPrimary from '@/components/buttons/ButtonPrimary'
+import { ThemedView } from '@/components/ThemedView'
+import { Ionicons } from '@expo/vector-icons'
 
 export default function AvaliationScreen() {
   const [index, setIndex] = useState(0)
@@ -38,7 +50,11 @@ export default function AvaliationScreen() {
   const detectionService = new DetectionService()
   const [searchText, setSearchText] = useState<string>('')
   const [debouncedSearch, setDebouncedSearch] = useState(searchText)
-  const [perPage] = useState(10)
+  const [perPage] = useState(80)
+  const [modalBatch, setModalBatch] = useState(false)
+  const logoMarkWhite = require('@/assets/images/logos/logomark-white.png')
+  const [avaliationsBatch, setAvaliationsBatch] = useState<Avaliation[]>([])
+  const MAX_BATCH = 80
 
   const [modalTextConfig, setModalTextConfig] = useState<{
     visible: boolean
@@ -61,6 +77,19 @@ export default function AvaliationScreen() {
       handler.cancel()
     }
   }, [searchText])
+
+  useEffect(() => {
+    if (!modalBatch) {
+      setAvaliationsBatch([])
+      return
+    }
+
+    setAvaliationsBatch(
+      avaliations?.pages
+        .flatMap((page) => (page && page.data ? page.data : []))
+        .slice(0, MAX_BATCH) ?? []
+    )
+  }, [modalBatch])
 
   const {
     data: avaliations,
@@ -157,6 +186,34 @@ export default function AvaliationScreen() {
     detectMutation.mutate(detectionData)
   }
 
+  const handleDetectBatch = async (avaliations: Avaliation[]) => {
+    if (avaliations.length === 0) {
+      return
+    }
+
+    const hook: DetectionHook = {
+      hookMethod: 'PATCH',
+      hookUrl: `${environment.apiUrl}/avaliation/detection/batch`,
+      hookIdBodyKey: 'id',
+      hookAvaliationBodyKey: 'avaliation',
+    }
+
+    const detections: Detection[] = avaliations
+      .filter((avaliation) => avaliation.idAvaliation != null)
+      .map((avaliation) => {
+        return {
+          mainText: avaliation.mainText,
+          context: 'Universidade Federal - Avaliação de aulas e professores',
+          external: {
+            module: 'UFSM',
+            id: avaliation.idAvaliation as number,
+          },
+        }
+      })
+
+    detectBatchMutation.mutate({ detections, hook })
+  }
+
   const handleRefresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['get_avaliations'] })
   }
@@ -190,6 +247,33 @@ export default function AvaliationScreen() {
       setIndex(1)
       router.push(`/modal-detect/${data.idDetection}`)
 
+      if (Platform.OS === 'android')
+        ToastAndroid.show('Detecção realizada', ToastAndroid.SHORT)
+    },
+    onError: (error) => {
+      Toast.show({
+        type: 'error',
+        text1: error.message,
+        text1Style: { fontSize: RFValue(14) },
+      })
+    },
+  })
+
+  const detectBatchMutation = useMutation({
+    mutationKey: ['detect_batch'],
+    mutationFn: (payload: { detections: Detection[]; hook: DetectionHook }) =>
+      detectionService.createBatch(payload.detections, payload.hook),
+    onMutate: () => {
+      setLoadingDetect(true)
+      setModalBatch(false)
+    },
+    onSettled: () => {
+      setLoadingDetect(false)
+    },
+    onSuccess: (data: Detection) => {
+      handleRefresh()
+      handleRefreshUFSM()
+      setIndex(1)
 
       if (Platform.OS === 'android')
         ToastAndroid.show('Detecção realizada', ToastAndroid.SHORT)
@@ -262,6 +346,92 @@ export default function AvaliationScreen() {
         text={modalTextConfig.text}
         handleClose={() => handleModalText(false)}
       />
+      {index === 0 && (
+        <ButtonPrimary
+          icon={
+            <Image
+              source={logoMarkWhite}
+              alt="Logo"
+              style={{ width: 44, height: 44 }}
+            />
+          }
+          round
+          color="secondary"
+          width={56}
+          height={56}
+          style={{
+            position: 'absolute',
+            bottom: 20,
+            right: 20,
+          }}
+          onPress={() => setModalBatch(true)}
+        />
+      )}
+
+      <Modal visible={modalBatch} animationType="fade" transparent={true}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+          }}
+        >
+          <ThemedView
+            style={{
+              margin: 20,
+              padding: 20,
+              borderRadius: 10,
+              maxHeight: '60%',
+              opacity: 1,
+              backgroundColor: colors.card,
+              borderWidth: 1,
+              borderColor: colors.mutedStrong,
+            }}
+          >
+            <Pressable
+              style={{
+                position: 'absolute',
+                top: 2,
+                right: 2,
+                padding: 4,
+                borderRadius: '100%',
+              }}
+              onPress={() => setModalBatch(false)}
+            >
+              <Ionicons name="close" size={24} color={colors.mutedForeground} />
+            </Pressable>
+            <ThemedText type="subtitle" style={{ marginBottom: 20 }}>
+              Detecção em lote
+            </ThemedText>
+            <View>
+              <ThemedText>
+                Detectar bullying, assédio moral ou linguagem ofensiva em lote
+              </ThemedText>
+              <ThemedText style={{ marginTop: 8 }}>
+                Serão realizadas {avaliationsBatch.length} detecções{`\n`}
+                Máximo: {MAX_BATCH}
+              </ThemedText>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: 24,
+              }}
+            >
+              <ThemedText style={{ fontSize: 24 }}>
+                {`${avaliationsBatch.length}/${MAX_BATCH}`}
+              </ThemedText>
+              <ButtonPrimary
+                dense
+                title="Iniciar"
+                onPress={() => handleDetectBatch(avaliationsBatch)}
+              />
+            </View>
+          </ThemedView>
+        </View>
+      </Modal>
     </ThemedSafeView>
   )
 }
