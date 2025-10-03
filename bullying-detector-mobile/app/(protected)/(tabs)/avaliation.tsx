@@ -179,7 +179,7 @@ export default function AvaliationScreen() {
         hookMethod: 'PATCH',
         hookUrl: `${environment.apiUrl}/avaliation/detection`,
         hookIdBodyKey: 'id',
-        hookAvaliationBodyKey: 'avaliation',
+        hookFinalClassificationBodyKey: 'avaliation',
       },
     }
 
@@ -195,7 +195,7 @@ export default function AvaliationScreen() {
       hookMethod: 'PATCH',
       hookUrl: `${environment.apiUrl}/avaliation/detection/batch`,
       hookIdBodyKey: 'id',
-      hookAvaliationBodyKey: 'avaliation',
+      hookFinalClassificationBodyKey: 'avaliation',
     }
 
     const detections: Detection[] = avaliations

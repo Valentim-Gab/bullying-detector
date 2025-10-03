@@ -1,3 +1,5 @@
+import { AiNameEnum } from '@/enums/AiEnum'
+
 export interface Detection {
   idDetection?: number
   mainText: string
@@ -15,25 +17,26 @@ export interface DetectionHook {
   hookMethod: 'POST' | 'PUT' | 'PATCH'
   hookUrl: string
   hookIdBodyKey: string
-  hookAvaliationBodyKey: string
+  hookFinalClassificationBodyKey: string
 }
 
 export interface DetectionData extends Detection {
   recordingAudio: string | null
-  mistralResult: number | null
-  mistralMessage: string | null
-  cohereResult: number | null
-  cohereMessage: string | null
-  geminiResult: number | null
-  geminiMessage: string | null
-  deepseekResult: number | null
-  deepseekMessage: string | null
-  databaseResult: number | null
-  databaseUserDetect: boolean | null
-  databaseUsersApprove: number | null
-  databaseUsersReject: number | null
-  similarityResult: number | null
-  avaliation: number
+  detectorAi1Name: AiNameEnum
+  detectorAi1Classification: number | null
+  detectorAi1Message: string | null
+  detectorAi2Name: AiNameEnum
+  detectorAi2Classification: number | null
+  detectorAi2Message: string | null
+  detectorAi3Name: AiNameEnum
+  detectorAi3Classification: number | null
+  detectorAi3Message: string | null
+  detectorCollaborativeClassification: number | null
+  detectorCollaborativeUserDetect: boolean | null
+  detectorCollaborativeUsersApprove: number | null
+  detectorCollaborativeUsersReject: number | null
+  detectorSimilarityClassification: number | null
+  finalClassification: number
   idUser: number
   idPhrase: number | null
 }

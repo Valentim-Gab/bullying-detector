@@ -47,15 +47,14 @@ export class DetectionService {
     const [
       mistralResult,
       cohereResult,
-      deepSeekResult,
       geminiResult,
-      databaseResult,
+      collaborativeResult,
       similarityResult,
     ] = await Promise.all([
-      this.detectMistral(detection.mainText, detection.context),
-      this.detectCohere(detection.mainText, detection.context),
+      null, // this.detectMistral(detection.mainText, detection.context),
+      null, // this.detectCohere(detection.mainText, detection.context),
       null, // this.detectDeepSeek(detection.mainText, detection.context),
-      this.detectGemini(detection.mainText, detection.context),
+      null, // this.detectGemini(detection.mainText, detection.context),
       this.detectDatabase(detection.mainText),
       this.detectSimilarity(detection.mainText),
     ])
@@ -73,35 +72,39 @@ export class DetectionService {
         : 0
 
     // Extras
-    const database = databaseResult?.avaliation ?? 0
-    const similarity = similarityResult?.avaliation ?? 0
-    const extras = database + similarity
+    const collaborative =
+      (collaborativeResult as SimpleDetection)?.classification ?? 0
+    const similarity =
+      (similarityResult as SimpleDetection)?.classification ?? 0
+    const extras = collaborative + similarity
 
     // Limita máximo em 5
-    const avaliation = Math.min(
+    const finalClassification = Math.min(
       iaAverage + extras,
-      DetectionConstants.AVALIATION_MAX_VALUE,
+      DetectionConstants.FINAL_CLASSIFICATION_MAX_VALUE,
     )
 
     const newDetection: Omit<Detection, 'idDetection'> = {
       recordingAudio: filename,
       mainText: detection.mainText,
       context: detection.context,
-      mistralResult: mistralResult?.avaliation ?? null,
-      mistralMessage: mistralResult?.message,
-      cohereResult: cohereResult?.avaliation ?? null,
-      cohereMessage: cohereResult?.message,
-      deepseekResult: deepSeekResult?.avaliation ?? null,
-      deepseekMessage: deepSeekResult?.message,
-      geminiResult: geminiResult?.avaliation ?? null,
-      geminiMessage: geminiResult?.message,
-      databaseResult: databaseResult.avaliation ?? null,
-      databaseUserDetect: databaseResult.databaseUserDetect,
-      databaseUsersApprove: null,
-      databaseUsersReject: null,
-      similarityResult: similarityResult?.avaliation ?? null,
-      avaliation: avaliation,
-      idPhrase: databaseResult.idPhrase ?? null,
+      detectorAi1Name: 'Mistral',
+      detectorAi1Classification: mistralResult?.classification ?? null,
+      detectorAi1Message: mistralResult?.message,
+      detectorAi2Name: 'Cohere',
+      detectorAi2Classification: cohereResult?.classification ?? null,
+      detectorAi2Message: cohereResult?.message,
+      detectorAi3Name: 'Gemini',
+      detectorAi3Classification: geminiResult?.classification ?? null,
+      detectorAi3Message: geminiResult?.message,
+      detectorCollaborativeClassification: collaborative,
+      detectorCollaborativeUserDetect:
+        collaborativeResult?.collaborativeUserDetect ?? false,
+      detectorCollaborativeUsersApprove: null,
+      detectorCollaborativeUsersReject: null,
+      detectorSimilarityClassification: similarity,
+      finalClassification: finalClassification,
+      idPhrase: collaborativeResult?.idPhrase ?? null,
       idUser: idUser,
       externalId: detection.external?.id ?? null,
       externalModule: detection.external?.module ?? null,
@@ -124,12 +127,16 @@ export class DetectionService {
           detection.hook &&
           detection.hook.hookUrl &&
           detection.hook.hookMethod &&
-          detection.hook.hookAvaliationBodyKey
+          detection.hook.hookFinalClassificationBodyKey
         ) {
-          this.updateExternalHook<Record<string, number>>(detection.hook, {
-            [detection.hook.hookAvaliationBodyKey]: newDetection.avaliation,
-            [detection.hook.hookIdBodyKey || 'id']: detection.external.id,
-          })
+          await this.updateExternalHook<Record<string, number>>(
+            detection.hook,
+            {
+              [detection.hook.hookFinalClassificationBodyKey]:
+                newDetection.finalClassification,
+              [detection.hook.hookIdBodyKey || 'id']: detection.external.id,
+            },
+          )
         }
 
         return createdDetection
@@ -138,6 +145,12 @@ export class DetectionService {
   }
 
   async saveBatch(detectionBatch: DetectionBatchDto, idUser?: number) {
+    if (detectionBatch.detections.length > 80) {
+      throw new BadRequestException(
+        'O lote não pode conter mais que 80 detecções.',
+      )
+    }
+
     const newDetections = await Promise.all(
       detectionBatch.detections.map((detection) =>
         this.buildDetection(detection, idUser, undefined),
@@ -155,14 +168,15 @@ export class DetectionService {
           detectionBatch.hook &&
           detectionBatch.hook.hookUrl &&
           detectionBatch.hook.hookMethod &&
-          detectionBatch.hook.hookAvaliationBodyKey
+          detectionBatch.hook.hookFinalClassificationBodyKey
         ) {
           const updateHookData = newDetections.map((d) => ({
-            [detectionBatch.hook.hookAvaliationBodyKey]: d.avaliation,
+            [detectionBatch.hook.hookFinalClassificationBodyKey]:
+              d.finalClassification,
             [detectionBatch.hook.hookIdBodyKey || 'id']: d.externalId,
           }))
 
-          this.updateExternalHook<Array<Record<string, number>>>(
+          await this.updateExternalHook<Array<Record<string, number>>>(
             detectionBatch.hook,
             updateHookData,
           )
@@ -279,11 +293,11 @@ export class DetectionService {
 
     return {
       detected: result[0]?.bullying_Phrase ?? false,
-      avaliation:
+      classification:
         result[0]?.bullying_Phrase || result[0]?.user_detect
-          ? DetectionConstants.DATABASE_MAX_VALUE
+          ? DetectionConstants.COLLABORATIVE_MAX_VALUE
           : 0,
-      databaseUserDetect: result[0]?.user_detect ?? null,
+      collaborativeUserDetect: result[0]?.user_detect ?? null,
       idPhrase: result[0]?.id_phrase,
     }
   }
@@ -419,38 +433,47 @@ export class DetectionService {
     }
 
     const newApprove = Math.max(
-      (detection.databaseUsersApprove ?? 0) + voteApprove,
+      (detection.detectorCollaborativeUsersApprove ?? 0) + voteApprove,
       0,
     )
     const newReject = Math.max(
-      (detection.databaseUsersReject ?? 0) + voteReject,
+      (detection.detectorCollaborativeUsersReject ?? 0) + voteReject,
       0,
     )
 
-    detection.databaseUsersApprove = newApprove
-    detection.databaseUsersReject = newReject
-    detection.databaseUserDetect = newApprove > 0 || newReject > 0
+    detection.detectorCollaborativeUsersApprove = newApprove
+    detection.detectorCollaborativeUsersReject = newReject
+    detection.detectorCollaborativeUserDetect = newApprove > 0 || newReject > 0
 
-    if (detection.databaseResult > 0 && newApprove <= newReject) {
-      detection.avaliation -= detection.databaseResult
+    if (
+      detection.detectorCollaborativeClassification > 0 &&
+      newApprove <= newReject
+    ) {
+      detection.finalClassification -=
+        detection.detectorCollaborativeClassification
     }
 
-    detection.databaseResult =
-      newApprove > newReject ? DetectionConstants.DATABASE_MAX_VALUE : 0
+    detection.detectorCollaborativeClassification =
+      newApprove > newReject ? DetectionConstants.COLLABORATIVE_MAX_VALUE : 0
 
-    const avaliation = Math.min(
-      detection.databaseResult + detection.avaliation,
-      DetectionConstants.AVALIATION_MAX_VALUE,
+    const finalClassificarion = Math.min(
+      detection.detectorCollaborativeClassification +
+        detection.finalClassification,
+      DetectionConstants.FINAL_CLASSIFICATION_MAX_VALUE,
     )
 
     return this.prisma.detection.update({
       where: { idDetection },
       data: {
-        databaseUsersApprove: detection.databaseUsersApprove,
-        databaseUsersReject: detection.databaseUsersReject,
-        databaseUserDetect: detection.databaseUserDetect,
-        databaseResult: detection.databaseResult,
-        avaliation: avaliation,
+        detectorCollaborativeUsersApprove:
+          detection.detectorCollaborativeUsersApprove,
+        detectorCollaborativeUsersReject:
+          detection.detectorCollaborativeUsersReject,
+        detectorCollaborativeUserDetect:
+          detection.detectorCollaborativeUserDetect,
+        detectorCollaborativeClassification:
+          detection.detectorCollaborativeClassification,
+        finalClassification: finalClassificarion,
       },
     })
   }

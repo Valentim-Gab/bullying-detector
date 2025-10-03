@@ -45,6 +45,6 @@ async def detect_harassment_similarity_embeddings(text_input: str = Query(...)):
     similarity_threshold = 0.8  # Novo valor de corte
 
     detected = any(sim > similarity_threshold for sim in similarities[0])
-    avaliation = 0.5 if detected else 0
+    classification = 1 if detected else 0
 
-    return JSONResponse(content={"detected": detected, "avaliation": avaliation})
+    return JSONResponse(content={"detected": detected, "classification": classification})

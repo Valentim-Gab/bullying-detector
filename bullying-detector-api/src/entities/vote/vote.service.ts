@@ -65,7 +65,8 @@ export class VoteService {
         const bullyingPhrase = await this.bullyingPhraseService.upsert(
           detection.mainText.slice(0, 100),
           true,
-          detection.databaseUsersApprove > detection.databaseUsersReject,
+          detection.detectorCollaborativeUsersApprove >
+            detection.detectorCollaborativeUsersReject,
           detection.idPhrase,
         )
 

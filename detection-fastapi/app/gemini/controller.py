@@ -26,8 +26,8 @@ async def detect_bullying_gemini_text(
             "role": "user",
             "parts": [
                 {
-                    "text": "Você é um avaliador de linguagem ofensiva. Sempre responda APENAS com um JSON válido no "
-                        "formato: { \"avaliation\": 0 a 5, \"justification\": \"texto explicando a nota\" }. Onde "
+                    "text": "Você é um detector de linguagem ofensiva. Sempre responda APENAS com um JSON válido no "
+                        "formato: { \"classification\": 0 a 5, \"justification\": \"texto explicando a nota\" }. Onde "
                         "0 significa nenhuma ofensa e 5 significa ofensa extremamente grave."
                 }
             ]
@@ -87,7 +87,7 @@ async def detect_bullying_gemini_text(
         return JSONResponse(
             content={
                 "detected": True,
-                "avaliation": parsed_response.get("avaliation"),
+                "classification": parsed_response.get("classification"),
                 "message": parsed_response.get("justification")
             }
         )

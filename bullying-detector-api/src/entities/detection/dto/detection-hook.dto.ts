@@ -19,5 +19,5 @@ export class DetectionHookDto {
 
   @IsOptional()
   @IsString()
-  hookAvaliationBodyKey?: string
+  hookFinalClassificationBodyKey?: string
 }

@@ -46,11 +46,11 @@ const AvaliationSecondTab = memo(function SecondRoute({
                   styles.resultValue,
                   {
                     color:
-                      item.avaliation >= 3 ? colors.negative : colors.positive,
+                      item.finalClassification >= 3 ? colors.negative : colors.positive,
                   },
                 ]}
               >
-                {item && item.avaliation.toFixed(2)}
+                {item && item.finalClassification.toFixed(2)}
                 <ThemedText
                   type="small"
                   style={{ color: colors.mutedForeground }}

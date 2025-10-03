@@ -18,9 +18,9 @@ async def detect_bullying_cohere_text(
         context: str = Query(None, description="Contexto opcional"),
 ):
     system_message = (
-        "Você é um avaliador de linguagem ofensiva. Sua tarefa é avaliar frases quanto à presença de ofensa, bullying "
+        "Você é um detector de linguagem ofensiva. Sua tarefa é avaliar frases quanto à presença de ofensa, bullying "
         "ou assédio moral. Sempre responda APENAS com um JSON válido no seguinte formato:\n"
-        "{ \"avaliation\": 0 a 5, \"justification\": \"explicação breve\" }.\n"
+        "{ \"classification\": 0 a 5, \"justification\": \"explicação breve\" }.\n"
         "0 = nenhuma ofensa, 5 = ofensa extremamente grave."
     )
 
@@ -46,7 +46,7 @@ async def detect_bullying_cohere_text(
         return JSONResponse(
             content={
                 "detected": True,
-                "avaliation": parsed.get("avaliation"),
+                "classification": parsed.get("classification"),
                 "message": parsed.get("justification")
             }
         )

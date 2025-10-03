@@ -250,13 +250,13 @@ export default function RecordScreen() {
                           styles.resultValue,
                           {
                             color:
-                              detection.avaliation >= 3
+                              detection.finalClassification >= 3
                                 ? colors.negative
                                 : colors.positive,
                           },
                         ]}
                       >
-                        {detection && detection.avaliation.toFixed(2)}
+                        {detection && detection.finalClassification.toFixed(2)}
                         <ThemedText
                           type="small"
                           style={{ color: colors.mutedForeground }}
