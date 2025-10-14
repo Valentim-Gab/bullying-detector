@@ -29,15 +29,10 @@ model Detection {
   recordingAudio                      String?         @map("recording_audio")
   mainText                            String          @map("main_text")
   context                             String?         @db.VarChar(255)
-  detectorAi1Name                     String?         @map("detector_ai_1_name") @db.VarChar(50)
   detectorAi1Classification           Float?          @map("detector_ai_1_classification")
   detectorAi1Message                  String?         @map("detector_ai_1_message")
-  detectorAi2Name                     String?         @map("detector_ai_2_name") @db.VarChar(50)
   detectorAi2Classification           Float?          @map("detector_ai_2_classification")
   detectorAi2Message                  String?         @map("detector_ai_2_message")
-  detectorAi3Name                     String?         @map("detector_ai_3_name") @db.VarChar(50)
-  detectorAi3Classification           Float?          @map("detector_ai_3_classification")
-  detectorAi3Message                  String?         @map("detector_ai_3_message")
   detectorCollaborativeClassification Float?          @map("detector_collaborative_classification")
   detectorCollaborativeUserDetect     Boolean?        @default(false) @map("detector_collaborative_user_detect")
   detectorCollaborativeUsersApprove   Int?            @map("detector_collaborative_users_approve")
@@ -48,6 +43,11 @@ model Detection {
   idPhrase                            Int?            @map("id_phrase")
   externalModule                      String?         @map("external_module") @db.VarChar(50)
   externalId                          Int?            @map("external_id")
+  detectorAi3Classification           Float?          @map("detector_ai_3_classification")
+  detectorAi3Message                  String?         @map("detector_ai_3_message")
+  detectorAi1Name                     String?         @map("detector_ai_1_name") @db.VarChar(50)
+  detectorAi2Name                     String?         @map("detector_ai_2_name") @db.VarChar(50)
+  detectorAi3Name                     String?         @map("detector_ai_3_name") @db.VarChar(50)
   bullyingPhrase                      bullyingPhrase? @relation(fields: [idPhrase], references: [idPhrase], onDelete: NoAction, onUpdate: NoAction)
   users                               Users?          @relation(fields: [idUser], references: [id], onDelete: NoAction, onUpdate: NoAction)
   vote                                vote[]
@@ -57,7 +57,7 @@ model Detection {
 
 model bullyingPhrase {
   idPhrase   Int         @id @default(autoincrement()) @map("id_phrase")
-  phrase     String?     @db.VarChar(100)
+  phrase     String?
   userDetect Boolean?    @default(false) @map("user_detect")
   isBullying Boolean?    @default(true) @map("is_bullying")
   detection  Detection[]
