@@ -46,7 +46,11 @@ const AvaliationSecondTab = memo(function SecondRoute({
                   styles.resultValue,
                   {
                     color:
-                      item.finalClassification >= 3 ? colors.negative : colors.positive,
+                      item.finalClassification >= 3
+                        ? colors.negative
+                        : item.finalClassification >= 1
+                        ? colors.warning
+                        : colors.positive,
                   },
                 ]}
               >

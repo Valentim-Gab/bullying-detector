@@ -252,6 +252,8 @@ export default function RecordScreen() {
                             color:
                               detection.finalClassification >= 3
                                 ? colors.negative
+                                : detection.finalClassification >= 1
+                                ? colors.warning
                                 : colors.positive,
                           },
                         ]}

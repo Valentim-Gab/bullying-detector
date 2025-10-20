@@ -96,7 +96,7 @@ export default function ModalDetectScreen() {
       `Adm classificou o conteúdo como ofensivo`,
       `Os usuários classificaram o conteúdo como ofensivo`,
       `Os usuários classificaram o conteúdo como não ofensivo`,
-      `A opinião dos usuários está empatada, não foi possível determinar se o áudio contém ofensas`,
+      `A opinião dos usuários está empatada, não foi possível determinar se contém ofensas`,
       '',
     ]
 
@@ -314,6 +314,8 @@ export default function ModalDetectScreen() {
                             color:
                               detection.finalClassification >= 3
                                 ? colors.negative
+                                : detection.finalClassification >= 1
+                                ? colors.warning
                                 : colors.positive,
                             marginTop: 12,
                           },
@@ -466,6 +468,8 @@ export default function ModalDetectScreen() {
                             color:
                               detection.detectorAi1Classification >= 3
                                 ? colors.negative
+                                : detection.detectorAi1Classification >= 1
+                                ? colors.warning
                                 : colors.positive,
                           },
                         ]}
@@ -560,6 +564,8 @@ export default function ModalDetectScreen() {
                             color:
                               detection.detectorAi2Classification >= 3
                                 ? colors.negative
+                                : detection.detectorAi2Classification >= 1
+                                ? colors.warning
                                 : colors.positive,
                           },
                         ]}
@@ -653,6 +659,8 @@ export default function ModalDetectScreen() {
                             color:
                               detection.detectorAi3Classification >= 3
                                 ? colors.negative
+                                : detection.detectorAi3Classification >= 1
+                                ? colors.warning
                                 : colors.positive,
                           },
                         ]}
