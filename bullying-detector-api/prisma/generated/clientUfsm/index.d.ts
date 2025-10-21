@@ -883,66 +883,94 @@ export namespace Prisma {
 
   export type AvaliationAvgAggregateOutputType = {
     idAvaliation: number | null
-    avaliation: number | null
+    finalAverage: number | null
+    bullyingClassification: number | null
   }
 
   export type AvaliationSumAggregateOutputType = {
     idAvaliation: number | null
-    avaliation: number | null
+    finalAverage: number | null
+    bullyingClassification: number | null
   }
 
   export type AvaliationMinAggregateOutputType = {
     idAvaliation: number | null
     mainText: string | null
+    bertClassification: string | null
+    studentSituation: string | null
+    finalAverage: number | null
+    concept: string | null
     detected: boolean | null
-    avaliation: number | null
+    bullyingClassification: number | null
   }
 
   export type AvaliationMaxAggregateOutputType = {
     idAvaliation: number | null
     mainText: string | null
+    bertClassification: string | null
+    studentSituation: string | null
+    finalAverage: number | null
+    concept: string | null
     detected: boolean | null
-    avaliation: number | null
+    bullyingClassification: number | null
   }
 
   export type AvaliationCountAggregateOutputType = {
     idAvaliation: number
     mainText: number
+    bertClassification: number
+    studentSituation: number
+    finalAverage: number
+    concept: number
     detected: number
-    avaliation: number
+    bullyingClassification: number
     _all: number
   }
 
 
   export type AvaliationAvgAggregateInputType = {
     idAvaliation?: true
-    avaliation?: true
+    finalAverage?: true
+    bullyingClassification?: true
   }
 
   export type AvaliationSumAggregateInputType = {
     idAvaliation?: true
-    avaliation?: true
+    finalAverage?: true
+    bullyingClassification?: true
   }
 
   export type AvaliationMinAggregateInputType = {
     idAvaliation?: true
     mainText?: true
+    bertClassification?: true
+    studentSituation?: true
+    finalAverage?: true
+    concept?: true
     detected?: true
-    avaliation?: true
+    bullyingClassification?: true
   }
 
   export type AvaliationMaxAggregateInputType = {
     idAvaliation?: true
     mainText?: true
+    bertClassification?: true
+    studentSituation?: true
+    finalAverage?: true
+    concept?: true
     detected?: true
-    avaliation?: true
+    bullyingClassification?: true
   }
 
   export type AvaliationCountAggregateInputType = {
     idAvaliation?: true
     mainText?: true
+    bertClassification?: true
+    studentSituation?: true
+    finalAverage?: true
+    concept?: true
     detected?: true
-    avaliation?: true
+    bullyingClassification?: true
     _all?: true
   }
 
@@ -1035,8 +1063,12 @@ export namespace Prisma {
   export type AvaliationGroupByOutputType = {
     idAvaliation: number
     mainText: string | null
+    bertClassification: string | null
+    studentSituation: string | null
+    finalAverage: number | null
+    concept: string | null
     detected: boolean | null
-    avaliation: number | null
+    bullyingClassification: number | null
     _count: AvaliationCountAggregateOutputType | null
     _avg: AvaliationAvgAggregateOutputType | null
     _sum: AvaliationSumAggregateOutputType | null
@@ -1061,32 +1093,48 @@ export namespace Prisma {
   export type AvaliationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     idAvaliation?: boolean
     mainText?: boolean
+    bertClassification?: boolean
+    studentSituation?: boolean
+    finalAverage?: boolean
+    concept?: boolean
     detected?: boolean
-    avaliation?: boolean
+    bullyingClassification?: boolean
   }, ExtArgs["result"]["avaliation"]>
 
   export type AvaliationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     idAvaliation?: boolean
     mainText?: boolean
+    bertClassification?: boolean
+    studentSituation?: boolean
+    finalAverage?: boolean
+    concept?: boolean
     detected?: boolean
-    avaliation?: boolean
+    bullyingClassification?: boolean
   }, ExtArgs["result"]["avaliation"]>
 
   export type AvaliationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     idAvaliation?: boolean
     mainText?: boolean
+    bertClassification?: boolean
+    studentSituation?: boolean
+    finalAverage?: boolean
+    concept?: boolean
     detected?: boolean
-    avaliation?: boolean
+    bullyingClassification?: boolean
   }, ExtArgs["result"]["avaliation"]>
 
   export type AvaliationSelectScalar = {
     idAvaliation?: boolean
     mainText?: boolean
+    bertClassification?: boolean
+    studentSituation?: boolean
+    finalAverage?: boolean
+    concept?: boolean
     detected?: boolean
-    avaliation?: boolean
+    bullyingClassification?: boolean
   }
 
-  export type AvaliationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"idAvaliation" | "mainText" | "detected" | "avaliation", ExtArgs["result"]["avaliation"]>
+  export type AvaliationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"idAvaliation" | "mainText" | "bertClassification" | "studentSituation" | "finalAverage" | "concept" | "detected" | "bullyingClassification", ExtArgs["result"]["avaliation"]>
 
   export type $AvaliationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Avaliation"
@@ -1094,8 +1142,12 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       idAvaliation: number
       mainText: string | null
+      bertClassification: string | null
+      studentSituation: string | null
+      finalAverage: number | null
+      concept: string | null
       detected: boolean | null
-      avaliation: number | null
+      bullyingClassification: number | null
     }, ExtArgs["result"]["avaliation"]>
     composites: {}
   }
@@ -1521,8 +1573,12 @@ export namespace Prisma {
   interface AvaliationFieldRefs {
     readonly idAvaliation: FieldRef<"Avaliation", 'Int'>
     readonly mainText: FieldRef<"Avaliation", 'String'>
+    readonly bertClassification: FieldRef<"Avaliation", 'String'>
+    readonly studentSituation: FieldRef<"Avaliation", 'String'>
+    readonly finalAverage: FieldRef<"Avaliation", 'Float'>
+    readonly concept: FieldRef<"Avaliation", 'String'>
     readonly detected: FieldRef<"Avaliation", 'Boolean'>
-    readonly avaliation: FieldRef<"Avaliation", 'Float'>
+    readonly bullyingClassification: FieldRef<"Avaliation", 'Float'>
   }
     
 
@@ -1717,7 +1773,7 @@ export namespace Prisma {
     /**
      * The data needed to create a Avaliation.
      */
-    data?: XOR<AvaliationCreateInput, AvaliationUncheckedCreateInput>
+    data: XOR<AvaliationCreateInput, AvaliationUncheckedCreateInput>
   }
 
   /**
@@ -1906,8 +1962,12 @@ export namespace Prisma {
   export const AvaliationScalarFieldEnum: {
     idAvaliation: 'idAvaliation',
     mainText: 'mainText',
+    bertClassification: 'bertClassification',
+    studentSituation: 'studentSituation',
+    finalAverage: 'finalAverage',
+    concept: 'concept',
     detected: 'detected',
-    avaliation: 'avaliation'
+    bullyingClassification: 'bullyingClassification'
   };
 
   export type AvaliationScalarFieldEnum = (typeof AvaliationScalarFieldEnum)[keyof typeof AvaliationScalarFieldEnum]
@@ -1971,13 +2031,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Boolean'
-   */
-  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1988,6 +2041,13 @@ export namespace Prisma {
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Boolean'
+   */
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
   /**
    * Deep Input Types
@@ -2000,15 +2060,23 @@ export namespace Prisma {
     NOT?: AvaliationWhereInput | AvaliationWhereInput[]
     idAvaliation?: IntFilter<"Avaliation"> | number
     mainText?: StringNullableFilter<"Avaliation"> | string | null
+    bertClassification?: StringNullableFilter<"Avaliation"> | string | null
+    studentSituation?: StringNullableFilter<"Avaliation"> | string | null
+    finalAverage?: FloatNullableFilter<"Avaliation"> | number | null
+    concept?: StringNullableFilter<"Avaliation"> | string | null
     detected?: BoolNullableFilter<"Avaliation"> | boolean | null
-    avaliation?: FloatNullableFilter<"Avaliation"> | number | null
+    bullyingClassification?: FloatNullableFilter<"Avaliation"> | number | null
   }
 
   export type AvaliationOrderByWithRelationInput = {
     idAvaliation?: SortOrder
     mainText?: SortOrderInput | SortOrder
+    bertClassification?: SortOrderInput | SortOrder
+    studentSituation?: SortOrderInput | SortOrder
+    finalAverage?: SortOrderInput | SortOrder
+    concept?: SortOrderInput | SortOrder
     detected?: SortOrderInput | SortOrder
-    avaliation?: SortOrderInput | SortOrder
+    bullyingClassification?: SortOrderInput | SortOrder
   }
 
   export type AvaliationWhereUniqueInput = Prisma.AtLeast<{
@@ -2017,15 +2085,23 @@ export namespace Prisma {
     OR?: AvaliationWhereInput[]
     NOT?: AvaliationWhereInput | AvaliationWhereInput[]
     mainText?: StringNullableFilter<"Avaliation"> | string | null
+    bertClassification?: StringNullableFilter<"Avaliation"> | string | null
+    studentSituation?: StringNullableFilter<"Avaliation"> | string | null
+    finalAverage?: FloatNullableFilter<"Avaliation"> | number | null
+    concept?: StringNullableFilter<"Avaliation"> | string | null
     detected?: BoolNullableFilter<"Avaliation"> | boolean | null
-    avaliation?: FloatNullableFilter<"Avaliation"> | number | null
+    bullyingClassification?: FloatNullableFilter<"Avaliation"> | number | null
   }, "idAvaliation">
 
   export type AvaliationOrderByWithAggregationInput = {
     idAvaliation?: SortOrder
     mainText?: SortOrderInput | SortOrder
+    bertClassification?: SortOrderInput | SortOrder
+    studentSituation?: SortOrderInput | SortOrder
+    finalAverage?: SortOrderInput | SortOrder
+    concept?: SortOrderInput | SortOrder
     detected?: SortOrderInput | SortOrder
-    avaliation?: SortOrderInput | SortOrder
+    bullyingClassification?: SortOrderInput | SortOrder
     _count?: AvaliationCountOrderByAggregateInput
     _avg?: AvaliationAvgOrderByAggregateInput
     _max?: AvaliationMaxOrderByAggregateInput
@@ -2039,54 +2115,89 @@ export namespace Prisma {
     NOT?: AvaliationScalarWhereWithAggregatesInput | AvaliationScalarWhereWithAggregatesInput[]
     idAvaliation?: IntWithAggregatesFilter<"Avaliation"> | number
     mainText?: StringNullableWithAggregatesFilter<"Avaliation"> | string | null
+    bertClassification?: StringNullableWithAggregatesFilter<"Avaliation"> | string | null
+    studentSituation?: StringNullableWithAggregatesFilter<"Avaliation"> | string | null
+    finalAverage?: FloatNullableWithAggregatesFilter<"Avaliation"> | number | null
+    concept?: StringNullableWithAggregatesFilter<"Avaliation"> | string | null
     detected?: BoolNullableWithAggregatesFilter<"Avaliation"> | boolean | null
-    avaliation?: FloatNullableWithAggregatesFilter<"Avaliation"> | number | null
+    bullyingClassification?: FloatNullableWithAggregatesFilter<"Avaliation"> | number | null
   }
 
   export type AvaliationCreateInput = {
+    idAvaliation: number
     mainText?: string | null
+    bertClassification?: string | null
+    studentSituation?: string | null
+    finalAverage?: number | null
+    concept?: string | null
     detected?: boolean | null
-    avaliation?: number | null
+    bullyingClassification?: number | null
   }
 
   export type AvaliationUncheckedCreateInput = {
-    idAvaliation?: number
+    idAvaliation: number
     mainText?: string | null
+    bertClassification?: string | null
+    studentSituation?: string | null
+    finalAverage?: number | null
+    concept?: string | null
     detected?: boolean | null
-    avaliation?: number | null
+    bullyingClassification?: number | null
   }
 
   export type AvaliationUpdateInput = {
+    idAvaliation?: IntFieldUpdateOperationsInput | number
     mainText?: NullableStringFieldUpdateOperationsInput | string | null
+    bertClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    studentSituation?: NullableStringFieldUpdateOperationsInput | string | null
+    finalAverage?: NullableFloatFieldUpdateOperationsInput | number | null
+    concept?: NullableStringFieldUpdateOperationsInput | string | null
     detected?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    avaliation?: NullableFloatFieldUpdateOperationsInput | number | null
+    bullyingClassification?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type AvaliationUncheckedUpdateInput = {
     idAvaliation?: IntFieldUpdateOperationsInput | number
     mainText?: NullableStringFieldUpdateOperationsInput | string | null
+    bertClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    studentSituation?: NullableStringFieldUpdateOperationsInput | string | null
+    finalAverage?: NullableFloatFieldUpdateOperationsInput | number | null
+    concept?: NullableStringFieldUpdateOperationsInput | string | null
     detected?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    avaliation?: NullableFloatFieldUpdateOperationsInput | number | null
+    bullyingClassification?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type AvaliationCreateManyInput = {
-    idAvaliation?: number
+    idAvaliation: number
     mainText?: string | null
+    bertClassification?: string | null
+    studentSituation?: string | null
+    finalAverage?: number | null
+    concept?: string | null
     detected?: boolean | null
-    avaliation?: number | null
+    bullyingClassification?: number | null
   }
 
   export type AvaliationUpdateManyMutationInput = {
+    idAvaliation?: IntFieldUpdateOperationsInput | number
     mainText?: NullableStringFieldUpdateOperationsInput | string | null
+    bertClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    studentSituation?: NullableStringFieldUpdateOperationsInput | string | null
+    finalAverage?: NullableFloatFieldUpdateOperationsInput | number | null
+    concept?: NullableStringFieldUpdateOperationsInput | string | null
     detected?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    avaliation?: NullableFloatFieldUpdateOperationsInput | number | null
+    bullyingClassification?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type AvaliationUncheckedUpdateManyInput = {
     idAvaliation?: IntFieldUpdateOperationsInput | number
     mainText?: NullableStringFieldUpdateOperationsInput | string | null
+    bertClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    studentSituation?: NullableStringFieldUpdateOperationsInput | string | null
+    finalAverage?: NullableFloatFieldUpdateOperationsInput | number | null
+    concept?: NullableStringFieldUpdateOperationsInput | string | null
     detected?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    avaliation?: NullableFloatFieldUpdateOperationsInput | number | null
+    bullyingClassification?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -2115,11 +2226,6 @@ export namespace Prisma {
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
-  export type BoolNullableFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
-    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
-  }
-
   export type FloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -2131,6 +2237,11 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
+  export type BoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -2139,32 +2250,46 @@ export namespace Prisma {
   export type AvaliationCountOrderByAggregateInput = {
     idAvaliation?: SortOrder
     mainText?: SortOrder
+    bertClassification?: SortOrder
+    studentSituation?: SortOrder
+    finalAverage?: SortOrder
+    concept?: SortOrder
     detected?: SortOrder
-    avaliation?: SortOrder
+    bullyingClassification?: SortOrder
   }
 
   export type AvaliationAvgOrderByAggregateInput = {
     idAvaliation?: SortOrder
-    avaliation?: SortOrder
+    finalAverage?: SortOrder
+    bullyingClassification?: SortOrder
   }
 
   export type AvaliationMaxOrderByAggregateInput = {
     idAvaliation?: SortOrder
     mainText?: SortOrder
+    bertClassification?: SortOrder
+    studentSituation?: SortOrder
+    finalAverage?: SortOrder
+    concept?: SortOrder
     detected?: SortOrder
-    avaliation?: SortOrder
+    bullyingClassification?: SortOrder
   }
 
   export type AvaliationMinOrderByAggregateInput = {
     idAvaliation?: SortOrder
     mainText?: SortOrder
+    bertClassification?: SortOrder
+    studentSituation?: SortOrder
+    finalAverage?: SortOrder
+    concept?: SortOrder
     detected?: SortOrder
-    avaliation?: SortOrder
+    bullyingClassification?: SortOrder
   }
 
   export type AvaliationSumOrderByAggregateInput = {
     idAvaliation?: SortOrder
-    avaliation?: SortOrder
+    finalAverage?: SortOrder
+    bullyingClassification?: SortOrder
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -2201,14 +2326,6 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
-  export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
-    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedBoolNullableFilter<$PrismaModel>
-    _max?: NestedBoolNullableFilter<$PrismaModel>
-  }
-
   export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -2225,12 +2342,24 @@ export namespace Prisma {
     _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
-  export type NullableStringFieldUpdateOperationsInput = {
-    set?: string | null
+  export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBoolNullableFilter<$PrismaModel>
+    _max?: NestedBoolNullableFilter<$PrismaModel>
   }
 
-  export type NullableBoolFieldUpdateOperationsInput = {
-    set?: boolean | null
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type NullableStringFieldUpdateOperationsInput = {
+    set?: string | null
   }
 
   export type NullableFloatFieldUpdateOperationsInput = {
@@ -2241,12 +2370,8 @@ export namespace Prisma {
     divide?: number
   }
 
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
+  export type NullableBoolFieldUpdateOperationsInput = {
+    set?: boolean | null
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -2274,11 +2399,6 @@ export namespace Prisma {
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
-  export type NestedBoolNullableFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
-    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
-  }
-
   export type NestedFloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -2288,6 +2408,11 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedBoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -2345,14 +2470,6 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
-  export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
-    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedBoolNullableFilter<$PrismaModel>
-    _max?: NestedBoolNullableFilter<$PrismaModel>
-  }
-
   export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -2367,6 +2484,14 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBoolNullableFilter<$PrismaModel>
+    _max?: NestedBoolNullableFilter<$PrismaModel>
   }
 
 

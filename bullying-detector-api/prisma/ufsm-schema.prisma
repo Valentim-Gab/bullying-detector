@@ -9,10 +9,14 @@ datasource ufsmDb {
 }
 
 model Avaliation {
-  idAvaliation Int      @id @default(autoincrement()) @map("id_avaliation")
-  mainText     String?  @map("main_text")
-  detected     Boolean?
-  avaliation   Float?
+  idAvaliation           Int      @id @map("id_avaliation")
+  mainText               String?  @map("main_text")
+  bertClassification     String?  @map("bert_classification") @ufsmDb.VarChar(20)
+  studentSituation       String?  @map("student_situation") @ufsmDb.VarChar(255)
+  finalAverage           Float?   @map("final_average")
+  concept                String?  @map("concept") @ufsmDb.VarChar(50)
+  detected               Boolean? @default(false)
+  bullyingClassification Float?   @map("bullying_classification")
 
   @@map("avaliation")
 }

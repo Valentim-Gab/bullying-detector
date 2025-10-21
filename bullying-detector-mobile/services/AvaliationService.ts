@@ -17,6 +17,13 @@ export class AvaliationService {
     search: string,
     detected?: boolean
   ): Promise<Pagination<Avaliation> | null> {
+    console.log('AvaliacaoService - getAllPagination called with:', {
+      page,
+      perPage,
+      search,
+      detected,
+    })
+
     const res = await axiosService(`${this.apiUrl}/avaliation/pagination`, {
       params: {
         page,

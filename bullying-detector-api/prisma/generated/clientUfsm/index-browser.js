@@ -123,8 +123,12 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 exports.Prisma.AvaliationScalarFieldEnum = {
   idAvaliation: 'idAvaliation',
   mainText: 'mainText',
+  bertClassification: 'bertClassification',
+  studentSituation: 'studentSituation',
+  finalAverage: 'finalAverage',
+  concept: 'concept',
   detected: 'detected',
-  avaliation: 'avaliation'
+  bullyingClassification: 'bullyingClassification'
 };
 
 exports.Prisma.SortOrder = {

@@ -43,7 +43,7 @@ export class AvaliationService {
         skip,
         take: perPage,
         where,
-        orderBy: { idAvaliation: 'desc' }, // idAvaliation tá certo 👍
+        orderBy: { idAvaliation: 'desc' },
       }),
       this.prismaUfsm.avaliation.count({ where }),
     ])
@@ -62,7 +62,10 @@ export class AvaliationService {
   ): Promise<Avaliation> {
     return await this.prismaUfsm.avaliation.update({
       where: { idAvaliation: avaliationDetection.id },
-      data: { detected: true, avaliation: avaliationDetection.avaliation },
+      data: {
+        detected: true,
+        bullyingClassification: avaliationDetection.avaliation,
+      },
     })
   }
 
@@ -75,7 +78,7 @@ export class AvaliationService {
           where: { idAvaliation: d.id },
           data: {
             detected: true,
-            avaliation: d.avaliation,
+            bullyingClassification: d.avaliation,
           },
         }),
       ),

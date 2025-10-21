@@ -170,7 +170,7 @@ export default function AvaliationScreen() {
 
     const detectionData: Detection = {
       mainText: avaliation.mainText,
-      context: 'Universidade Federal - Avaliação de aulas e professores',
+      context: `Universidade Federal - Avaliação de aulas e professores. Dados para auxiliar na detecção: Classificação por algoritmo BERT: ${avaliation.bertClassification}; Conceito: ${avaliation.concept}; Média final: ${avaliation.finalAverage}; Situação do aluno: ${avaliation.studentSituation}.`,
       external: {
         module: 'UFSM',
         id: avaliation.idAvaliation,
@@ -203,7 +203,7 @@ export default function AvaliationScreen() {
       .map((avaliation) => {
         return {
           mainText: avaliation.mainText,
-          context: 'Universidade Federal - Avaliação de aulas e professores',
+          context: `Universidade Federal - Avaliação de aulas e professores. Dados para auxiliar na detecção: Classificação por algoritmo BERT: ${avaliation.bertClassification}; Conceito: ${avaliation.concept}; Média final: ${avaliation.finalAverage}; Situação do aluno: ${avaliation.studentSituation}.`,
           external: {
             module: 'UFSM',
             id: avaliation.idAvaliation as number,

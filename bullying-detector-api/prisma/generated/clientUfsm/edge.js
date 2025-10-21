@@ -95,8 +95,12 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 exports.Prisma.AvaliationScalarFieldEnum = {
   idAvaliation: 'idAvaliation',
   mainText: 'mainText',
+  bertClassification: 'bertClassification',
+  studentSituation: 'studentSituation',
+  finalAverage: 'finalAverage',
+  concept: 'concept',
   detected: 'detected',
-  avaliation: 'avaliation'
+  bullyingClassification: 'bullyingClassification'
 };
 
 exports.Prisma.SortOrder = {
@@ -166,13 +170,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator clientUfsm {\n  provider = \"prisma-client-js\"\n  output   = \"./generated/clientUfsm\"\n}\n\ndatasource ufsmDb {\n  provider = \"postgresql\"\n  url      = env(\"UFSM_DATABASE_URL\")\n}\n\nmodel Avaliation {\n  idAvaliation Int      @id @default(autoincrement()) @map(\"id_avaliation\")\n  mainText     String?  @map(\"main_text\")\n  detected     Boolean?\n  avaliation   Float?\n\n  @@map(\"avaliation\")\n}\n",
-  "inlineSchemaHash": "34c30ca44f9bb281818a242053f70b0b4c6939ca5df67bbccd3f65cf692e139b",
+  "inlineSchema": "generator clientUfsm {\n  provider = \"prisma-client-js\"\n  output   = \"./generated/clientUfsm\"\n}\n\ndatasource ufsmDb {\n  provider = \"postgresql\"\n  url      = env(\"UFSM_DATABASE_URL\")\n}\n\nmodel Avaliation {\n  idAvaliation           Int      @id @map(\"id_avaliation\")\n  mainText               String?  @map(\"main_text\")\n  bertClassification     String?  @map(\"bert_classification\") @ufsmDb.VarChar(20)\n  studentSituation       String?  @map(\"student_situation\") @ufsmDb.VarChar(255)\n  finalAverage           Float?   @map(\"final_average\")\n  concept                String?  @map(\"concept\") @ufsmDb.VarChar(50)\n  detected               Boolean? @default(false)\n  bullyingClassification Float?   @map(\"bullying_classification\")\n\n  @@map(\"avaliation\")\n}\n",
+  "inlineSchemaHash": "adc9b58a73322aae8a3d8581e2e428751f5970151bbcd59fd0cbb304a48bb6e0",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Avaliation\":{\"dbName\":\"avaliation\",\"schema\":null,\"fields\":[{\"name\":\"idAvaliation\",\"dbName\":\"id_avaliation\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"mainText\",\"dbName\":\"main_text\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"detected\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Boolean\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"avaliation\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Float\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Avaliation\":{\"dbName\":\"avaliation\",\"schema\":null,\"fields\":[{\"name\":\"idAvaliation\",\"dbName\":\"id_avaliation\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"mainText\",\"dbName\":\"main_text\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"bertClassification\",\"dbName\":\"bert_classification\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"20\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"studentSituation\",\"dbName\":\"student_situation\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"finalAverage\",\"dbName\":\"final_average\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Float\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"concept\",\"dbName\":\"concept\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"50\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"detected\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"bullyingClassification\",\"dbName\":\"bullying_classification\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Float\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = undefined
 config.compilerWasm = undefined
