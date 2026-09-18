@@ -51,10 +51,10 @@ export class DetectionService {
       collaborativeResult,
       similarityResult,
     ] = await Promise.all([
-      null, // this.detectMistral(detection.mainText, detection.context),
-      null, // this.detectCohere(detection.mainText, detection.context),
-      null, // this.detectDeepSeek(detection.mainText, detection.context),
-      null, // this.detectGemini(detection.mainText, detection.context),
+      this.detectMistral(detection.mainText, detection.context),
+      this.detectCohere(detection.mainText, detection.context),
+      //null, // this.detectDeepSeek(detection.mainText, detection.context),
+      this.detectGemini(detection.mainText, detection.context),
       this.detectDatabase(detection.mainText),
       this.detectSimilarity(detection.mainText),
     ])
@@ -67,7 +67,7 @@ export class DetectionService {
     // Se não detectou nenhuma IA, média = 0
     const iaAverage =
       iaResults.length > 0
-        ? iaResults.reduce((acc, curr) => acc + (curr.avaliation ?? 0), 0) /
+        ? iaResults.reduce((acc, curr) => acc + (curr.classification ?? 0), 0) /
           iaResults.length
         : 0
 
@@ -145,46 +145,70 @@ export class DetectionService {
   }
 
   async saveBatch(detectionBatch: DetectionBatchDto, idUser?: number) {
-    if (detectionBatch.detections.length > 80) {
+    console.log('Detections to process:', detectionBatch.detections.length)
+
+    if (detectionBatch.detections.length > 2000) {
       throw new BadRequestException(
-        'O lote não pode conter mais que 80 detecções.',
+        'O lote não pode conter mais que 2000 detecções.',
       )
     }
 
-    const newDetections = await Promise.all(
-      detectionBatch.detections.map((detection) =>
-        this.buildDetection(detection, idUser, undefined),
-      ),
-    )
+    const chunkSize = 50
+    const allCreatedDetections: any[] = []
 
-    return this.prismaUtil.performOperation(
-      'Não foi possível realizar a detecção',
-      async () => {
-        const createdDetection = await this.prisma.detection.createMany({
-          data: newDetections,
-        })
+    // Processa cada lote em uma transação separada
+    for (let i = 0; i < detectionBatch.detections.length; i += chunkSize) {
+      const chunk = detectionBatch.detections.slice(i, i + chunkSize)
 
-        if (
-          detectionBatch.hook &&
-          detectionBatch.hook.hookUrl &&
-          detectionBatch.hook.hookMethod &&
-          detectionBatch.hook.hookFinalClassificationBodyKey
-        ) {
-          const updateHookData = newDetections.map((d) => ({
-            [detectionBatch.hook.hookFinalClassificationBodyKey]:
-              d.finalClassification,
-            [detectionBatch.hook.hookIdBodyKey || 'id']: d.externalId,
-          }))
+      // Monta as detecções do grupo
+      const chunkDetections = await Promise.all(
+        chunk.map((detection) =>
+          this.buildDetection(detection, idUser, undefined),
+        ),
+      )
 
+      // Salva o grupo no banco dentro de uma transação curta
+      await this.prismaUtil.performOperation(
+        `Erro ao salvar lote ${i / chunkSize + 1}`,
+        async () => {
+          await this.prisma.detection.createMany({
+            data: chunkDetections,
+          })
+        },
+        60_000,
+      )
+
+      allCreatedDetections.push(...chunkDetections)
+      console.log(
+        `✅ Lote ${i / chunkSize + 1} salvo com ${chunkDetections.length} registros`,
+      )
+    }
+
+    // Executa hook externo (se configurado)
+    if (
+      detectionBatch.hook &&
+      detectionBatch.hook.hookUrl &&
+      detectionBatch.hook.hookMethod &&
+      detectionBatch.hook.hookFinalClassificationBodyKey
+    ) {
+      const updateHookData = allCreatedDetections.map((d) => ({
+        [detectionBatch.hook.hookFinalClassificationBodyKey]:
+          d.finalClassification,
+        [detectionBatch.hook.hookIdBodyKey || 'id']: d.externalId,
+      }))
+
+      await this.prismaUtil.performOperation(
+        'Erro ao atualizar hook externo',
+        async () => {
           await this.updateExternalHook<Array<Record<string, number>>>(
             detectionBatch.hook,
             updateHookData,
           )
-        }
+        },
+      )
+    }
 
-        return createdDetection
-      },
-    )
+    return { totalSaved: allCreatedDetections.length }
   }
 
   private async updateExternalHook<T>(hook: DetectionHookDto, data: T) {
@@ -292,9 +316,9 @@ export class DetectionService {
     `
 
     return {
-      detected: result[0]?.bullying_Phrase ?? false,
+      detected: result[0]?.bullying_phrase ?? false,
       classification:
-        result[0]?.bullying_Phrase || result[0]?.user_detect
+        result[0]?.bullying_phrase || result[0]?.user_detect
           ? DetectionConstants.COLLABORATIVE_MAX_VALUE
           : 0,
       collaborativeUserDetect: result[0]?.user_detect ?? null,
@@ -421,59 +445,52 @@ export class DetectionService {
     }
   }
 
-  async updateVote(
-    idDetection: number,
-    voteApprove: number,
-    voteReject: number,
-  ): Promise<Detection> {
+  async updateVote(idDetection: number): Promise<Detection> {
     const detection = await this.findById(idDetection)
 
     if (!detection) {
       throw new BadRequestException('Detecção não encontrada')
     }
 
-    const newApprove = Math.max(
-      (detection.detectorCollaborativeUsersApprove ?? 0) + voteApprove,
-      0,
-    )
-    const newReject = Math.max(
-      (detection.detectorCollaborativeUsersReject ?? 0) + voteReject,
-      0,
-    )
+    const votes = await this.prisma.vote.findMany({
+      where: {
+        detectionId: idDetection,
+        voteClassification: {
+          not: null,
+        },
+      },
+      select: {
+        voteClassification: true,
+      },
+    })
 
-    detection.detectorCollaborativeUsersApprove = newApprove
-    detection.detectorCollaborativeUsersReject = newReject
-    detection.detectorCollaborativeUserDetect = newApprove > 0 || newReject > 0
+    const classifications = votes
+      .map((vote) => vote.voteClassification)
+      .filter(
+        (classification): classification is number => classification !== null,
+      )
 
-    if (
-      detection.detectorCollaborativeClassification > 0 &&
-      newApprove <= newReject
-    ) {
-      detection.finalClassification -=
-        detection.detectorCollaborativeClassification
-    }
+    const collaborativeClassification =
+      classifications.length > 0
+        ? classifications.reduce(
+            (sum, classification) => sum + classification,
+            0,
+          ) / classifications.length
+        : null
 
-    detection.detectorCollaborativeClassification =
-      newApprove > newReject ? DetectionConstants.COLLABORATIVE_MAX_VALUE : 0
-
-    const finalClassificarion = Math.min(
-      detection.detectorCollaborativeClassification +
-        detection.finalClassification,
-      DetectionConstants.FINAL_CLASSIFICATION_MAX_VALUE,
-    )
+    const finalClassification =
+      collaborativeClassification ?? detection.finalClassification
 
     return this.prisma.detection.update({
-      where: { idDetection },
+      where: {
+        idDetection,
+      },
       data: {
-        detectorCollaborativeUsersApprove:
-          detection.detectorCollaborativeUsersApprove,
-        detectorCollaborativeUsersReject:
-          detection.detectorCollaborativeUsersReject,
-        detectorCollaborativeUserDetect:
-          detection.detectorCollaborativeUserDetect,
-        detectorCollaborativeClassification:
-          detection.detectorCollaborativeClassification,
-        finalClassification: finalClassificarion,
+        detectorCollaborativeClassification: collaborativeClassification,
+        detectorCollaborativeUserDetect: classifications.length > 0,
+        detectorCollaborativeUsersApprove: null,
+        detectorCollaborativeUsersReject: null,
+        finalClassification,
       },
     })
   }

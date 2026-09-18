@@ -10,11 +10,17 @@ export class PrismaUtil {
   public async performOperation(
     errorMessage: string,
     operation: () => Promise<any>,
+    timeout?: number,
   ) {
     try {
-      return await this.prisma.$transaction(async () => {
-        return await operation()
-      })
+      return await this.prisma.$transaction(
+        async () => {
+          return await operation()
+        },
+        {
+          timeout: timeout,
+        },
+      )
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

@@ -18,13 +18,13 @@ async def detect_bullying_cohere_text(
     context: str = Query(None, description="Contexto opcional"),
 ):
     system_message = (
-        "Você é um detector de linguagem ofensiva. Sua tarefa é avaliar frases quanto à presença de ofensa, bullying "
+        "Você é um detector de linguagem ofensiva. Sua tarefa é avaliar frases quanto à presença de ofensas, bullying "
         "ou assédio moral. Sempre responda APENAS com um JSON válido no seguinte formato:\n"
-        "{ \"classification\": 0 a 5, \"justification\": \"explicação breve\" }.\n"
+        "{ \"classification\": 0 a 5, \"justification\": \"texto (pt-BR) explicando a classificação\" }.\n"
         "Classificações:\n"
-        "0 até 0.99 -> Contém nenhuma ou quase nenhuma ofensa;\n"
-        "1 até 2.99 -> Contém pouca ou ofensa moderada;\n"
-        "3 até 5 -> Contém ofensas graves ou extremamente graves.\n"
+        "0 até 0.99 -> Fraca intensidade;\n"
+        "1 até 2.99 -> Média intensidade;\n"
+        "3 até 5 -> Forte intensidade.\n"
     )
 
     user_message = f"Frase: {text_input}"
@@ -51,6 +51,7 @@ async def detect_bullying_cohere_text(
             raw_text = raw_text.strip("`").strip()
 
         parsed = json.loads(raw_text)
+        print(f'COHERE: {parsed}')
 
         return JSONResponse(
             content={

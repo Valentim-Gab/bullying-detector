@@ -35,7 +35,9 @@ export default function ModalDetectScreen() {
   const voteService = useMemo(() => new VoteService(), [])
   const [modalVisible, setModalVisible] = useState(false)
   const [modalDatabase, setModalDatabase] = useState(false)
-  const [modalDetails, setModalDetails] = useState(false)
+  const [selectedClassification, setSelectedClassification] = useState<
+    number | null
+  >(null)
   const [detection, setDetection] = useState<DetectionData | null>(null)
   const [loading, setLoading] = useState(false)
   const { colors, theme } = useTheme()
@@ -91,50 +93,6 @@ export default function ModalDetectScreen() {
     navigation.goBack()
   }
 
-  const getDatabaseTextEntity = (detection: DetectionData) => {
-    const results = [
-      `Adm classificou o conteúdo como ofensivo`,
-      `Os usuários classificaram o conteúdo como ofensivo`,
-      `Os usuários classificaram o conteúdo como não ofensivo`,
-      `A opinião dos usuários está empatada, não foi possível determinar se contém ofensas`,
-      '',
-    ]
-
-    const database = getDatabaseResult(detection)
-
-    return results[database]
-  }
-
-  const getDatabaseResult = (detection: DetectionData): databaseResult => {
-    if (
-      detection.detectorCollaborativeUserDetect &&
-      detection.detectorCollaborativeUsersApprove != null &&
-      detection.detectorCollaborativeUsersReject != null
-    ) {
-      if (
-        detection.detectorCollaborativeUsersApprove >
-        detection.detectorCollaborativeUsersReject
-      ) {
-        return databaseResult.DETECTED_USERS
-      }
-
-      if (
-        detection.detectorCollaborativeUsersApprove <
-        detection.detectorCollaborativeUsersReject
-      ) {
-        return databaseResult.UNDETECTED_USERS
-      }
-
-      return databaseResult.UNDETERMINATED_USERS
-    }
-
-    if (detection.detectorCollaborativeClassification) {
-      return databaseResult.DETECTED_ADM
-    }
-
-    return databaseResult.UNDETECTED
-  }
-
   const playSound = async (filename: string | null) => {
     if (!filename) {
       return
@@ -145,7 +103,7 @@ export default function ModalDetectScreen() {
         {
           uri: `${environment.apiUrl}/detection/download/${filename}`,
         },
-        { shouldPlay: true }
+        { shouldPlay: true },
       )
 
       await playbackObject.playAsync()
@@ -163,55 +121,48 @@ export default function ModalDetectScreen() {
     }
 
     const {
-      detectorAi1Classification: mistralResult,
-      detectorAi2Classification: cohereResult,
-      detectorAi3Classification: geminiResult,
-      detectorCollaborativeClassification: databaseResult = 0,
-      detectorSimilarityClassification: similarityResult = 0,
+      detectorAi1Classification: ai1Result,
+      detectorAi2Classification: ai2Result,
+      detectorAi3Classification: ai3Result,
+      detectorCollaborativeClassification: collaborativeResult,
+      detectorCollaborativeUserDetect,
     } = detection
 
-    // Preparar os valores LLM
+    // Avaliação colaborativa possui precedência
+    if (detectorCollaborativeUserDetect) {
+      const value = collaborativeResult ?? 0
+
+      return {
+        calculationKeys: `Colaborativo = ${value.toFixed(2)}`,
+        calculationValues: `${value.toFixed(2)} = ${value.toFixed(2)}`,
+      }
+    }
+
     const llmValues = [
-      { key: detection?.detectorAi1Name ?? null, value: mistralResult },
-      { key: detection?.detectorAi2Name ?? null, value: cohereResult },
-      { key: detection?.detectorAi3Name ?? null, value: geminiResult },
+      { key: detection.detectorAi1Name ?? null, value: ai1Result },
+      { key: detection.detectorAi2Name ?? null, value: ai2Result },
+      { key: detection.detectorAi3Name ?? null, value: ai3Result },
     ].filter((item) => item.value !== null)
 
     const llmKeys = llmValues.map((item) => item.key)
     const llmNums = llmValues.map((item) => item.value ?? 0)
 
-    let formulaSymbol = ''
-    let formulaNumeric = ''
-    let llmAverage = 0
-
     if (llmNums.length > 0) {
       const sum = llmNums.reduce((acc, val) => acc + val, 0)
-      llmAverage = sum / llmNums.length
+      const llmAverage = sum / llmNums.length
 
-      formulaSymbol += `(${llmKeys.join(' + ')})/${llmNums.length}`
-      formulaNumeric += `(${llmNums.join(' + ')})/${llmNums.length}`
+      const formulaSymbol = `(${llmKeys.join(' + ')})/${llmNums.length}`
+      const formulaNumeric = `(${llmNums.join(' + ')})/${llmNums.length}`
+
+      return {
+        calculationKeys: `${formulaSymbol} = ${llmAverage.toFixed(2)}`,
+        calculationValues: `${formulaNumeric} = ${llmAverage.toFixed(2)}`,
+      }
     }
-
-    // Add database + similarity
-    const partsSymbol = []
-    const partsNumeric = []
-
-    if (formulaSymbol) {
-      partsSymbol.push(formulaSymbol)
-      partsNumeric.push(formulaNumeric)
-    }
-
-    partsSymbol.push('Colaborativo', 'Similaridade')
-    partsNumeric.push(
-      (databaseResult ?? 0).toString(),
-      (similarityResult ?? 0).toString()
-    )
-
-    const total = llmAverage + (databaseResult ?? 0) + (similarityResult ?? 0)
 
     return {
-      calculationKeys: `${partsSymbol.join(' + ')} = ${total.toFixed(2)}`,
-      calculationValues: `${partsNumeric.join(' + ')} = ${total.toFixed(2)}`,
+      calculationKeys: 'Nenhuma classificação disponível',
+      calculationValues: '0',
     }
   }
 
@@ -219,14 +170,10 @@ export default function ModalDetectScreen() {
     setModalDatabase(value)
   }
 
-  const handleModalDetails = (value: boolean) => {
-    setModalDetails(value)
-  }
-
-  const vote = (vote: boolean) => {
+  const vote = (voteClassification: number) => {
     const payload: Vote = {
       detectionId: Number(id),
-      vote: vote,
+      voteClassification: voteClassification,
     }
 
     voteMutation.mutate(payload)
@@ -315,8 +262,8 @@ export default function ModalDetectScreen() {
                               detection.finalClassification >= 3
                                 ? colors.negative
                                 : detection.finalClassification >= 1
-                                ? colors.warning
-                                : colors.positive,
+                                  ? colors.warning
+                                  : colors.positive,
                             marginTop: 12,
                           },
                         ]}
@@ -469,8 +416,8 @@ export default function ModalDetectScreen() {
                               detection.detectorAi1Classification >= 3
                                 ? colors.negative
                                 : detection.detectorAi1Classification >= 1
-                                ? colors.warning
-                                : colors.positive,
+                                  ? colors.warning
+                                  : colors.positive,
                           },
                         ]}
                       >
@@ -527,7 +474,7 @@ export default function ModalDetectScreen() {
                     <ThemedText style={{ textAlign: 'center' }}>
                       {detection?.detectorAi1Classification == null
                         ? 'Falha na detecção'
-                        : detection?.detectorAi1Message ?? 'Não disponível'}
+                        : (detection?.detectorAi1Message ?? 'Não disponível')}
                     </ThemedText>
                   </View>
                 )}
@@ -565,8 +512,8 @@ export default function ModalDetectScreen() {
                               detection.detectorAi2Classification >= 3
                                 ? colors.negative
                                 : detection.detectorAi2Classification >= 1
-                                ? colors.warning
-                                : colors.positive,
+                                  ? colors.warning
+                                  : colors.positive,
                           },
                         ]}
                       >
@@ -622,7 +569,7 @@ export default function ModalDetectScreen() {
                     <ThemedText style={{ textAlign: 'center' }}>
                       {detection?.detectorAi2Classification == null
                         ? 'Falha na detecção'
-                        : detection?.detectorAi2Message ?? 'Não disponível'}
+                        : (detection?.detectorAi2Message ?? 'Não disponível')}
                     </ThemedText>
                   </View>
                 )}
@@ -660,8 +607,8 @@ export default function ModalDetectScreen() {
                               detection.detectorAi3Classification >= 3
                                 ? colors.negative
                                 : detection.detectorAi3Classification >= 1
-                                ? colors.warning
-                                : colors.positive,
+                                  ? colors.warning
+                                  : colors.positive,
                           },
                         ]}
                       >
@@ -717,15 +664,10 @@ export default function ModalDetectScreen() {
                     <ThemedText style={{ textAlign: 'center' }}>
                       {detection?.detectorAi3Classification == null
                         ? 'Falha na detecção'
-                        : detection?.detectorAi3Message ?? 'Não disponível'}
+                        : (detection?.detectorAi3Message ?? 'Não disponível')}
                     </ThemedText>
                   </View>
                 )}
-              </View>
-              <View>
-                <ThemedText style={{ textAlign: 'center', lineHeight: 12 }}>
-                  <Ionicons name="add" size={16} />
-                </ThemedText>
               </View>
 
               <View
@@ -765,13 +707,15 @@ export default function ModalDetectScreen() {
                         ]}
                       >
                         {detection &&
-                          detection.detectorCollaborativeClassification}
+                          detection.detectorCollaborativeClassification.toFixed(
+                            2,
+                          )}
                         <ThemedText
                           type="small"
                           style={{ color: colors.mutedForeground }}
                         >
                           {' '}
-                          / 1
+                          / 5
                         </ThemedText>
                       </ThemedText>
                     </View>
@@ -797,37 +741,14 @@ export default function ModalDetectScreen() {
                     />
                   )}
                 </View>
-                {detection &&
-                (detection.detectorCollaborativeClassification != 0 ||
-                  detection.detectorCollaborativeUserDetect) ? (
-                  <ThemedText style={{ marginTop: 16, fontSize: RFValue(14) }}>
-                    {getDatabaseTextEntity(detection)}
+                <Pressable
+                  style={styles.btnSavePhrase}
+                  onPress={() => handleModalDatabase(true)}
+                >
+                  <ThemedText style={{ color: colors.secondaryLight }}>
+                    Classificar conteúdo
                   </ThemedText>
-                ) : null}
-                {detection &&
-                  detection.detectorCollaborativeClassification != null &&
-                  detection.detectorCollaborativeUserDetect && (
-                    <Pressable
-                      style={styles.btnSavePhrase}
-                      onPress={() => handleModalDetails(true)}
-                    >
-                      <ThemedText style={{ color: colors.secondaryLight }}>
-                        Ver detalhes
-                      </ThemedText>
-                    </Pressable>
-                  )}
-                {detection &&
-                  !detection.detectorCollaborativeClassification &&
-                  !detection.detectorCollaborativeUserDetect && (
-                    <Pressable
-                      style={styles.btnSavePhrase}
-                      onPress={() => handleModalDatabase(true)}
-                    >
-                      <ThemedText style={{ color: colors.secondaryLight }}>
-                        Classificar conteúdo como ofensivo
-                      </ThemedText>
-                    </Pressable>
-                  )}
+                </Pressable>
               </View>
 
               <View
@@ -951,7 +872,7 @@ export default function ModalDetectScreen() {
         </View>
       </Modal>
 
-      <Modal visible={modalDatabase} animationType="fade" transparent={true}>
+      <Modal visible={modalDatabase} animationType="fade" transparent>
         <View
           style={{
             flex: 1,
@@ -964,163 +885,106 @@ export default function ModalDetectScreen() {
               margin: 20,
               padding: 20,
               borderRadius: 10,
-              maxHeight: '60%',
-              opacity: 1,
               backgroundColor: colors.card,
               borderWidth: 1,
               borderColor: colors.mutedStrong,
             }}
           >
             <ThemedText type="subtitle" style={{ marginBottom: 12 }}>
-              Classificar como ofensivo
+              Classificar conteúdo
             </ThemedText>
-            <ScrollView>
-              <ThemedText>
-                Ao enviar, o texto gerado passará a ser considerado assédio
-                moral para o nosso sistema.
-              </ThemedText>
-            </ScrollView>
+
+            <ThemedText style={{ marginBottom: 20 }}>
+              Avalie o nível de ofensividade do texto em uma escala de 0 a 5.
+            </ThemedText>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                gap: 8,
+              }}
+            >
+              {[0, 1, 2, 3, 4, 5].map((value) => (
+                <Pressable
+                  key={value}
+                  style={[
+                    styles.btnClassification,
+                    {
+                      backgroundColor: (() => {
+                        if (
+                          selectedClassification == null ||
+                          selectedClassification !== value
+                        ) {
+                          return colors.mutedStrong
+                        }
+
+                        if (selectedClassification < 1) {
+                          return colors.positive
+                        }
+
+                        if (selectedClassification < 3) {
+                          return colors.warning
+                        }
+
+                        return colors.negative
+                      })(),
+                    },
+                  ]}
+                  onPress={() => setSelectedClassification(value)}
+                >
+                  <Text
+                    style={{
+                      color: '#fff',
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {value}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginTop: 12,
+              }}
+            >
+              <ThemedText>Inofensivo</ThemedText>
+              <ThemedText>Ofensivo</ThemedText>
+            </View>
+
             <View
               style={{
                 flexDirection: 'row',
                 justifyContent: 'flex-end',
                 gap: 8,
-                marginTop: 8,
+                marginTop: 24,
               }}
             >
               <ButtonPrimary
                 title="Cancelar"
                 dense
                 outline
-                style={{ marginTop: 24 }}
                 onPress={() => {
                   setModalDatabase(false)
+                  setSelectedClassification(null)
                 }}
               />
+
               <ButtonPrimary
                 title="Confirmar"
                 dense
-                style={{ marginTop: 24 }}
-                onPress={() => vote(true)}
+                disabled={selectedClassification === null}
+                onPress={() => {
+                  if (selectedClassification !== null) {
+                    vote(selectedClassification)
+                  }
+                }}
               />
-            </View>
-          </ThemedView>
-        </View>
-      </Modal>
-
-      <Modal visible={modalDetails} animationType="fade" transparent={true}>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-          }}
-        >
-          <ThemedView
-            style={{
-              margin: 20,
-              padding: 20,
-              borderRadius: 10,
-              maxHeight: '60%',
-              opacity: 1,
-              backgroundColor: colors.card,
-              borderWidth: 1,
-              borderColor: colors.mutedStrong,
-            }}
-          >
-            <Pressable
-              style={{ position: 'absolute', top: 0, right: 0 }}
-              onPress={() => {
-                setModalDetails(false)
-              }}
-            >
-              <Ionicons
-                name="close"
-                size={24}
-                color={colors.mutedForeground}
-                style={styles.btnClose}
-              />
-            </Pressable>
-            <ThemedText type="subtitle" style={{ marginBottom: 12 }}>
-              Detalhes da database
-            </ThemedText>
-            <ScrollView>
-              <ThemedText>
-                Classificação baseada na opinião dos usuários
-              </ThemedText>
-            </ScrollView>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                gap: 16,
-                marginTop: 24,
-              }}
-            >
-              <Pressable
-                style={[
-                  styles.btnVote,
-                  {
-                    backgroundColor: colors.positive,
-                  },
-                ]}
-                onPress={() => vote(false)}
-              >
-                <MaterialIcons name="thumb-up" size={72} color="white" />
-
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                    color: '#fff',
-                  }}
-                >
-                  Considero{'\n'}inofensivo
-                </Text>
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: Colors.dark.mutedForeground,
-                    margin: 12,
-                    width: '80%',
-                  }}
-                ></View>
-                <Text style={{ textAlign: 'center', color: '#fff' }}>
-                  Total: {detection?.detectorCollaborativeUsersReject ?? 0}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.btnVote,
-                  {
-                    backgroundColor: colors.negative,
-                  },
-                ]}
-                onPress={() => vote(true)}
-              >
-                <MaterialIcons name="thumb-down" size={72} color="white" />
-
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                    color: '#fff',
-                  }}
-                >
-                  Considero{'\n'}ofensivo
-                </Text>
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: Colors.dark.mutedForeground,
-                    margin: 12,
-                    width: '80%',
-                  }}
-                ></View>
-                <Text style={{ textAlign: 'center', color: '#fff' }}>
-                  Total: {detection?.detectorCollaborativeUsersApprove ?? 0}
-                </Text>
-              </Pressable>
             </View>
           </ThemedView>
         </View>
@@ -1199,6 +1063,13 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnClassification: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },

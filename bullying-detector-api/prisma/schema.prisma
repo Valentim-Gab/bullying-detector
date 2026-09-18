@@ -66,10 +66,11 @@ model bullyingPhrase {
 }
 
 model vote {
-  idVote      Int        @id @default(autoincrement()) @map("id_vote")
-  userId      Int?       @map("user_id")
-  detectionId Int?       @map("detection_id")
-  vote        Boolean?
-  detection   Detection? @relation(fields: [detectionId], references: [idDetection], onDelete: NoAction, onUpdate: NoAction)
-  users       Users?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  idVote              Int        @id @default(autoincrement()) @map("id_vote")
+  userId              Int?       @map("user_id")
+  detectionId         Int?       @map("detection_id")
+  vote                Boolean?
+  voteClassification  Int?       @map("vote_classification")
+  detection           Detection? @relation(fields: [detectionId], references: [idDetection], onDelete: NoAction, onUpdate: NoAction)
+  users               Users?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

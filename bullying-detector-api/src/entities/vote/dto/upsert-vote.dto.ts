@@ -1,13 +1,13 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
+import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
 
 export class UpsertVoteDto {
   @IsNumber()
   @IsNotEmpty()
   detectionId: number
 
-  @IsBoolean()
+  @IsNumber()
   @IsNotEmpty()
-  vote: boolean
+  voteClassification: number
 
   @IsNumber()
   @IsOptional()

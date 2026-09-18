@@ -24,12 +24,14 @@ async def detect_bullying_mistral_text(
     messages = [
         {
             "role": "system",
-            "content": "Você é um detector de linguagem ofensiva. Sempre responda APENAS com um JSON válido no "
-                       "formato: { \"classification\": 0 a 5, \"justification\": \"texto explicando a classificação\" }.\n"
-                       "Classificações:\n"
-                       "0 até 0.99 -> Contém nenhuma ou quase nenhuma ofensa;\n"
-                       "1 até 2.99 -> Contém pouca ou ofensa moderada;\n"
-                       "3 até 5 -> Contém ofensas graves ou extremamente graves.\n"
+            "content": "Você é um detector de linguagem ofensiva. "
+                        "Sua tarefa é avaliar frases quanto à presença de ofensas, bullying ou assédio moral. "
+                        "Sempre responda APENAS com um JSON válido no "
+                        "formato: { \"classification\": 0 a 5, \"justification\": \"texto (pt-BR) explicando a classificação\" }.\n"
+                        "Classificações:\n"
+                        "0 até 0.99 -> Fraca intensidade;\n"
+                        "1 até 2.99 -> Média intensidade;\n"
+                        "3 até 5 -> Forte intensidade.\n"
         },
         {
             "role": "user",

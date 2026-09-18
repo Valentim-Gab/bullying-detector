@@ -17,7 +17,7 @@ export class VoteService {
 
   async upsert(userId: number, upsertVoteDto: UpsertVoteDto) {
     return this.prismaUtil.performOperation(
-      'Não foi possível cadastrar voto',
+      'Não foi possível cadastrar avaliação',
       async () => {
         const previousVote = await this.findByUserDetection(
           userId,
@@ -26,8 +26,8 @@ export class VoteService {
 
         const payload = {
           detectionId: upsertVoteDto.detectionId,
-          vote: upsertVoteDto.vote,
-          userId: userId,
+          voteClassification: upsertVoteDto.voteClassification,
+          userId,
         }
 
         await this.prisma.vote.upsert({
@@ -38,43 +38,16 @@ export class VoteService {
           },
           create: payload,
           update: {
-            vote: payload.vote,
+            voteClassification: payload.voteClassification,
           },
         })
 
-        let detection: Detection | null = null
-
-        if (previousVote) {
-          detection = await this.detectionService.updateVote(
-            upsertVoteDto.detectionId,
-            (upsertVoteDto.vote ? 1 : 0) - (previousVote?.vote ? 1 : 0),
-            (!upsertVoteDto.vote ? 1 : 0) - (!previousVote?.vote ? 1 : 0),
-          )
-        } else {
-          detection = await this.detectionService.updateVote(
-            upsertVoteDto.detectionId,
-            upsertVoteDto.vote ? 1 : 0,
-            !upsertVoteDto.vote ? 1 : 0,
-          )
-        }
+        const detection = await this.detectionService.updateVote(
+          upsertVoteDto.detectionId,
+        )
 
         if (!detection) {
           throw new Error('Detecção não encontrada.')
-        }
-
-        const bullyingPhrase = await this.bullyingPhraseService.upsert(
-          detection.mainText.slice(0, 100),
-          true,
-          detection.detectorCollaborativeUsersApprove >
-            detection.detectorCollaborativeUsersReject,
-          detection.idPhrase,
-        )
-
-        if (detection.idPhrase == null) {
-          return await this.detectionService.updateIdPhrase(
-            detection.idDetection,
-            bullyingPhrase.idPhrase,
-          )
         }
 
         return detection
@@ -138,19 +111,18 @@ export class VoteService {
 
   async delete(idVote: number, userId: number) {
     return this.prismaUtil.performOperation(
-      'Não foi possível deletar o voto',
+      'Não foi possível deletar a avaliação',
       async () => {
         const vote = await this.prisma.vote.delete({
-          where: { idVote, userId },
+          where: {
+            idVote,
+            userId,
+          },
         })
 
-        await this.detectionService.updateVote(
-          vote.detectionId,
-          vote.vote ? -1 : 0,
-          !vote.vote ? -1 : 0,
-        )
+        await this.detectionService.updateVote(vote.detectionId)
 
-        return { message: 'Voto deletado com sucesso' }
+        return { message: 'Avaliação deletada com sucesso' }
       },
     )
   }
