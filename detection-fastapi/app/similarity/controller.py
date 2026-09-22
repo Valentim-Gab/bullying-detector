@@ -32,19 +32,47 @@ cur.execute("SELECT phrase FROM bullying_phrase WHERE is_bullying")
 phrases = [row[0] for row in cur.fetchall()]
 
 
+def similarity_to_classification(similarity):
+    if similarity < 0.7:
+        # 0.0 -> 0.0
+        # 0.7 -> 0.9
+        return (similarity / 0.7) * 0.9
+
+    if similarity < 0.8:
+        # 0.7 -> 1.0
+        # 0.8 -> 2.9
+        return 1.0 + ((similarity - 0.7) / 0.1) * 1.9
+
+    # 0.8 -> 3.0
+    # 1.0 -> 5.0
+    return 3.0 + ((similarity - 0.8) / 0.2) * 2.0
+
+
 @app.get('/detect/similarity/embeddings')
-async def detect_harassment_similarity_embeddings(text_input: str = Query(...)):
+async def detect_harassment_similarity_embeddings(
+    text_input: str = Query(...)
+):
     texts_to_compare = phrases + [text_input]
     embeddings = get_embeddings(texts_to_compare)
 
-    # Calcular a similaridade entre o texto de entrada e as frases do banco
     input_embedding = embeddings[-1]
     phrase_embeddings = embeddings[:-1]
 
-    similarities = cosine_similarity([input_embedding], phrase_embeddings)
-    similarity_threshold = 0.8  # Novo valor de corte
 
-    detected = any(sim > similarity_threshold for sim in similarities[0])
-    avaliation = 0.5 if detected else 0
+    similarities = cosine_similarity(
+        [input_embedding],
+        phrase_embeddings,
+    )
 
-    return JSONResponse(content={"detected": detected, "avaliation": avaliation})
+    max_similarity = float(max(similarities[0]))
+    classification = similarity_to_classification(max_similarity)
+
+    detected = max_similarity >= 0.7
+
+    return JSONResponse(
+        content={
+            'detected': detected,
+            'similarity': round(max_similarity, 4),
+            'classification': round(classification, 2),
+        }
+    )

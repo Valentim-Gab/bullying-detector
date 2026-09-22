@@ -8,9 +8,6 @@ import { getGlobalQueryClient } from '@/utils/queryUtil'
 
 const axiosService = axios.create({
   baseURL: environment.apiUrl,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 })
 
 axiosService.interceptors.request.use(
@@ -62,14 +59,14 @@ axiosService.interceptors.response.use(
           return axiosService.request(error.config)
         } catch (err) {
           expireSession()
-          return err
+          return Promise.reject(error)
         }
       }
     } else {
-      return error
+      return Promise.reject(error)
     }
 
-    return error
+    return Promise.reject(error)
   }
 )
 

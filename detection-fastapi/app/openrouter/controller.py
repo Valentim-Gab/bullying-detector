@@ -24,9 +24,9 @@ async def detect_bullying_openrouter_text(
         context: str = Query(None, description="Contexto opcional"),
 ):
     system_prompt = (
-        "Você é um avaliador de linguagem ofensiva. Sua tarefa é detectar se há ofensa, bullying ou assédio moral "
+        "Você é um detector de linguagem ofensiva. Sua tarefa é detectar se há ofensa, bullying ou assédio moral "
         "em frases, considerando o contexto, quando fornecido. Responda APENAS com um JSON no formatom, cuidar aspas "
-        "duplas para não invalidar o JSON:{ \"avaliation\": 0 a 5, \"justification\": \"explicação breve\" }.\n"
+        "duplas para não invalidar o JSON:{ \"classification\": 0 a 5, \"justification\": \"explicação breve\" }.\n"
         "0 = nenhuma ofensa, 5 = ofensa extremamente grave."
     )
 
@@ -67,7 +67,7 @@ async def detect_bullying_openrouter_text(
         return JSONResponse(
             content={
                 "detected": True,
-                "avaliation": parsed.get("avaliation"),
+                "classification": parsed.get("classification"),
                 "message": parsed.get("justification")
             }
         )

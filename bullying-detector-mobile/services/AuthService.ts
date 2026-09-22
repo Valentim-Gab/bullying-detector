@@ -39,12 +39,8 @@ export async function signOut() {
   router.replace('/login')
 }
 
-export async function checkAuth(): Promise<boolean> {
-  const res = await axiosService.head('/check')
-
-  if (!res || res.status != HttpStatusCode.Ok) {
-    return false
-  }
-
-  return true
+export async function checkAuth() {
+  return await axiosService.head('/check', {
+    timeout: 1000 * 10, // 10 seconds
+  })
 }

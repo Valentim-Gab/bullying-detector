@@ -1,7 +1,8 @@
 export interface SimpleDetection {
   detected: boolean
-  avaliation: number
+  classification: number
   message?: string
   idPhrase?: number
-  databaseUserDetect?: boolean | null
+  collaborativeUserDetect?: boolean | null
+  similarity?: number | null
 }

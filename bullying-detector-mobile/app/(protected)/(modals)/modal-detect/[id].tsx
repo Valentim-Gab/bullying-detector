@@ -27,6 +27,7 @@ import { RFValue } from 'react-native-responsive-fontsize'
 import Skeleton from 'expo-skeleton-component'
 import ButtonPrimary from '@/components/buttons/ButtonPrimary'
 import Toast from 'react-native-toast-message'
+import { AiNameEnum } from '@/enums/AiEnum'
 
 export default function ModalDetectScreen() {
   const navigation = useNavigation()
@@ -34,7 +35,9 @@ export default function ModalDetectScreen() {
   const voteService = useMemo(() => new VoteService(), [])
   const [modalVisible, setModalVisible] = useState(false)
   const [modalDatabase, setModalDatabase] = useState(false)
-  const [modalDetails, setModalDetails] = useState(false)
+  const [selectedClassification, setSelectedClassification] = useState<
+    number | null
+  >(null)
   const [detection, setDetection] = useState<DetectionData | null>(null)
   const [loading, setLoading] = useState(false)
   const { colors, theme } = useTheme()
@@ -54,15 +57,19 @@ export default function ModalDetectScreen() {
   }
 
   const fetchDetection = async (id: number) => {
-    setLoading(true)
+    try {
+      setLoading(true)
 
-    const data = await detectionService.find(id)
+      const data = await detectionService.find(id)
 
-    if (data) {
-      setDetection(data)
+      if (data) {
+        setDetection(data)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar detecção:', error)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   useEffect(() => {
@@ -86,45 +93,7 @@ export default function ModalDetectScreen() {
     navigation.goBack()
   }
 
-  const getDatabaseTextEntity = (detection: DetectionData) => {
-    const results = [
-      `O áudio contém assédio moral baseado nos dados do Administrador`,
-      `O áudio contém assédio moral baseado na opinião dos usuários`,
-      `O áudio não contém assédio moral baseado na opinião dos usuários`,
-      `A opinião dos usuários está empatada, não foi possível determinar se o áudio contém assédio moral`,
-      '',
-    ]
-
-    const database = getDatabaseResult(detection)
-
-    return results[database]
-  }
-
-  const getDatabaseResult = (detection: DetectionData): databaseResult => {
-    if (
-      detection.databaseUserDetect &&
-      detection.databaseUsersApprove &&
-      detection.databaseUsersReject
-    ) {
-      if (detection.databaseUsersApprove > detection.databaseUsersReject) {
-        return databaseResult.DETECTED_USERS
-      }
-
-      if (detection.databaseUsersApprove < detection.databaseUsersReject) {
-        return databaseResult.UNDETECTED_USERS
-      }
-
-      return databaseResult.UNDETERMINATED_USERS
-    }
-
-    if (detection.databaseResult) {
-      return databaseResult.DETECTED_ADM
-    }
-
-    return databaseResult.UNDETECTED
-  }
-
-  async function playSound(filename: string | null) {
+  const playSound = async (filename: string | null) => {
     if (!filename) {
       return
     }
@@ -134,7 +103,7 @@ export default function ModalDetectScreen() {
         {
           uri: `${environment.apiUrl}/detection/download/${filename}`,
         },
-        { shouldPlay: true }
+        { shouldPlay: true },
       )
 
       await playbackObject.playAsync()
@@ -144,73 +113,67 @@ export default function ModalDetectScreen() {
   }
 
   const getDetectionCalculation = (detection: DetectionData | null) => {
-    if (!detection) return ['0']
+    if (!detection) {
+      return {
+        calculationKeys: 'Cálculo não encontrado',
+        calculationValues: '0',
+      }
+    }
 
     const {
-      mistralResult,
-      cohereResult,
-      deepseekResult,
-      databaseResult = 0,
-      similarityResult = 0,
+      detectorAi1Classification: ai1Result,
+      detectorAi2Classification: ai2Result,
+      detectorAi3Classification: ai3Result,
+      detectorCollaborativeClassification: collaborativeResult,
+      detectorCollaborativeUserDetect,
     } = detection
 
-    // Preparar os valores LLM
+    // Avaliação colaborativa possui precedência
+    if (detectorCollaborativeUserDetect) {
+      const value = collaborativeResult ?? 0
+
+      return {
+        calculationKeys: `Colaborativo = ${value.toFixed(2)}`,
+        calculationValues: `${value.toFixed(2)} = ${value.toFixed(2)}`,
+      }
+    }
+
     const llmValues = [
-      { key: 'mistral', value: mistralResult },
-      { key: 'cohere', value: cohereResult },
-      { key: 'deepseek', value: deepseekResult },
+      { key: detection.detectorAi1Name ?? null, value: ai1Result },
+      { key: detection.detectorAi2Name ?? null, value: ai2Result },
+      { key: detection.detectorAi3Name ?? null, value: ai3Result },
     ].filter((item) => item.value !== null)
 
     const llmKeys = llmValues.map((item) => item.key)
-    const llmNums = llmValues.map((item) => item.value!) // não-null assert
-
-    let formulaSymbol = ''
-    let formulaNumeric = ''
-    let llmAverage = 0
+    const llmNums = llmValues.map((item) => item.value ?? 0)
 
     if (llmNums.length > 0) {
       const sum = llmNums.reduce((acc, val) => acc + val, 0)
-      llmAverage = sum / llmNums.length
+      const llmAverage = sum / llmNums.length
 
-      formulaSymbol += `(${llmKeys.join(' + ')})/${llmNums.length}`
-      formulaNumeric += `(${llmNums.join(' + ')})/${llmNums.length}`
+      const formulaSymbol = `(${llmKeys.join(' + ')})/${llmNums.length}`
+      const formulaNumeric = `(${llmNums.join(' + ')})/${llmNums.length}`
+
+      return {
+        calculationKeys: `${formulaSymbol} = ${llmAverage.toFixed(2)}`,
+        calculationValues: `${formulaNumeric} = ${llmAverage.toFixed(2)}`,
+      }
     }
 
-    // Add database + similarity
-    const partsSymbol = []
-    const partsNumeric = []
-
-    if (formulaSymbol) {
-      partsSymbol.push(formulaSymbol)
-      partsNumeric.push(formulaNumeric)
+    return {
+      calculationKeys: 'Nenhuma classificação disponível',
+      calculationValues: '0',
     }
-
-    partsSymbol.push('database', 'similarity')
-    partsNumeric.push(
-      (databaseResult ?? 0).toString(),
-      (similarityResult ?? 0).toString()
-    )
-
-    const total = llmAverage + (databaseResult ?? 0) + (similarityResult ?? 0)
-
-    return [
-      `${partsSymbol.join(' + ')} = ${total.toFixed(2)}`,
-      `${partsNumeric.join(' + ')} = ${total.toFixed(2)}`,
-    ]
   }
 
   const handleModalDatabase = (value: boolean) => {
     setModalDatabase(value)
   }
 
-  const handleModalDetails = (value: boolean) => {
-    setModalDetails(value)
-  }
-
-  const vote = (vote: boolean) => {
+  const vote = (voteClassification: number) => {
     const payload: Vote = {
       detectionId: Number(id),
-      vote: vote,
+      voteClassification: voteClassification,
     }
 
     voteMutation.mutate(payload)
@@ -232,6 +195,21 @@ export default function ModalDetectScreen() {
     },
   })
 
+  const getAiLogoUrl = (aiName: AiNameEnum | null) => {
+    switch (aiName) {
+      case AiNameEnum.MISTRAL:
+        return require('@/assets/images/mistral-logo.png')
+      case AiNameEnum.COHERE:
+        return require('@/assets/images/cohere-logo.png')
+      case AiNameEnum.GEMINI:
+        return require('@/assets/images/gemini-logo.png')
+      case AiNameEnum.DEEP_SEEK:
+        return require('@/assets/images/deepseek-logo.png')
+      default:
+        return require('@/assets/images/fallback-ia-logo.png')
+    }
+  }
+
   return (
     <View style={{ backgroundColor: '#00000094', flex: 1 }}>
       <Modal
@@ -240,9 +218,6 @@ export default function ModalDetectScreen() {
         visible={modalVisible}
         onRequestClose={closeModal}
         statusBarTranslucent={true}
-        style={{
-          zIndex: -30,
-        }}
       >
         <Pressable style={{ height: 60 }} onPress={closeModal}></Pressable>
         <ThemedView style={styles.container}>
@@ -253,7 +228,7 @@ export default function ModalDetectScreen() {
               color={theme == ThemeEnum.Light ? 'black' : 'white'}
             />
           </Pressable>
-          <ScrollView style={{ paddingHorizontal: 32, marginVertical: 16 }}>
+          <ScrollView style={{ paddingHorizontal: 24, marginVertical: 16 }}>
             <View>
               <ThemedText type="title">
                 Detecção:{' '}
@@ -277,21 +252,23 @@ export default function ModalDetectScreen() {
                   }}
                 >
                   <ThemedText>Classificação final: </ThemedText>
-                  {detection && detection.avaliation != null ? (
+                  {detection && detection.finalClassification != null ? (
                     <View style={{ justifyContent: 'flex-end' }}>
                       <ThemedText
                         style={[
                           styles.resultValue,
                           {
                             color:
-                              detection.avaliation >= 3
+                              detection.finalClassification >= 3
                                 ? colors.negative
-                                : colors.positive,
+                                : detection.finalClassification >= 1
+                                  ? colors.warning
+                                  : colors.positive,
                             marginTop: 12,
                           },
                         ]}
                       >
-                        {detection && detection.avaliation.toFixed(2)}
+                        {detection && detection.finalClassification.toFixed(2)}
                         <ThemedText
                           type="small"
                           style={{ color: colors.mutedForeground }}
@@ -305,7 +282,7 @@ export default function ModalDetectScreen() {
                     <ThemedText>
                       <Ionicons
                         name="close-circle"
-                        size={48}
+                        size={32}
                         color={colors.negative}
                       />
                     </ThemedText>
@@ -362,12 +339,13 @@ export default function ModalDetectScreen() {
                       <Pressable
                         style={{ alignItems: 'center' }}
                         onPress={() => {
-                          const calculation = getDetectionCalculation(detection)
+                          const { calculationKeys, calculationValues } =
+                            getDetectionCalculation(detection)
 
                           setModalTextConfig({
                             visible: true,
                             title: 'Cálculo da detecção',
-                            text: `${calculation[0]}\n\nValores numéricos:\n${calculation[1]}`,
+                            text: `${calculationKeys}\n\nValores numéricos:\n${calculationValues}\n\nLimite: 5`,
                           })
                         }}
                       >
@@ -402,9 +380,7 @@ export default function ModalDetectScreen() {
             </View>
 
             <View style={{ marginTop: 24 }}>
-              <ThemedText type="subtitle">
-                Classificações individuais
-              </ThemedText>
+              <ThemedText type="subtitle">Detectores</ThemedText>
             </View>
 
             <View style={styles.resultsSection}>
@@ -413,26 +389,39 @@ export default function ModalDetectScreen() {
               >
                 <View style={styles.resultItemTitleSection}>
                   <Image
-                    source={require('@/assets/images/mistral-logo.png')}
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    source={getAiLogoUrl(detection?.detectorAi1Name ?? null)}
+                    style={{ width: 44, height: 44 }}
+                    resizeMode="contain"
                   />
-                  <ThemedText style={styles.resultItemTitleTxt}>
-                    Mistral AI
-                  </ThemedText>
-                  {detection && detection.mistralResult != null ? (
+                  <View style={styles.resultItemTextSection}>
+                    <ThemedText style={styles.resultItemTitleTxt}>
+                      {detection?.detectorAi1Name || 'Desconhecido'}
+                    </ThemedText>
+                    <ThemedText
+                      style={[
+                        styles.resultItemSubtitleTxt,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      Detector por AI - 1º
+                    </ThemedText>
+                  </View>
+                  {detection && detection.detectorAi1Classification != null ? (
                     <View style={{ height: 48, justifyContent: 'flex-end' }}>
                       <ThemedText
                         style={[
                           styles.resultValue,
                           {
                             color:
-                              detection.mistralResult >= 3
+                              detection.detectorAi1Classification >= 3
                                 ? colors.negative
-                                : colors.positive,
+                                : detection.detectorAi1Classification >= 1
+                                  ? colors.warning
+                                  : colors.positive,
                           },
                         ]}
                       >
-                        {detection && detection.mistralResult}
+                        {detection && detection.detectorAi1Classification}
                         <ThemedText
                           type="small"
                           style={{ color: colors.mutedForeground }}
@@ -445,7 +434,7 @@ export default function ModalDetectScreen() {
                   ) : (
                     <Ionicons
                       name="close-circle"
-                      size={48}
+                      size={32}
                       color={colors.negative}
                     />
                   )}
@@ -458,15 +447,15 @@ export default function ModalDetectScreen() {
                   )}
                 </View>
                 {detection &&
-                detection.mistralMessage &&
-                detection.mistralResult != null ? (
+                detection.detectorAi1Message &&
+                detection.detectorAi1Classification != null ? (
                   <Pressable
                     style={{ marginTop: 8, alignItems: 'center' }}
                     onPress={() => {
                       setModalTextConfig({
                         visible: true,
-                        title: 'Justificativa da Mistral AI',
-                        text: detection?.mistralMessage ?? '-',
+                        title: `Justificativa: ${detection.detectorAi1Name}`,
+                        text: detection?.detectorAi1Message ?? '-',
                       })
                     }}
                   >
@@ -483,9 +472,9 @@ export default function ModalDetectScreen() {
                 ) : (
                   <View style={{ marginTop: 8, alignItems: 'center' }}>
                     <ThemedText style={{ textAlign: 'center' }}>
-                      {detection?.mistralResult == null
+                      {detection?.detectorAi1Classification == null
                         ? 'Falha na detecção'
-                        : detection?.mistralMessage ?? 'Não disponível'}
+                        : (detection?.detectorAi1Message ?? 'Não disponível')}
                     </ThemedText>
                   </View>
                 )}
@@ -496,26 +485,39 @@ export default function ModalDetectScreen() {
               >
                 <View style={styles.resultItemTitleSection}>
                   <Image
-                    source={require('@/assets/images/cohere-logo.png')}
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    source={getAiLogoUrl(detection?.detectorAi2Name ?? null)}
+                    style={{ width: 44, height: 44 }}
+                    resizeMode="contain"
                   />
-                  <ThemedText style={styles.resultItemTitleTxt}>
-                    Cohere AI
-                  </ThemedText>
-                  {detection && detection.cohereResult != null ? (
+                  <View style={styles.resultItemTextSection}>
+                    <ThemedText style={styles.resultItemTitleTxt}>
+                      {detection?.detectorAi2Name || 'Desconhecido'}
+                    </ThemedText>
+                    <ThemedText
+                      style={[
+                        styles.resultItemSubtitleTxt,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      Detector por AI - 2º
+                    </ThemedText>
+                  </View>
+                  {detection && detection.detectorAi2Classification != null ? (
                     <View style={{ height: 48, justifyContent: 'flex-end' }}>
                       <ThemedText
                         style={[
                           styles.resultValue,
                           {
                             color:
-                              detection.cohereResult >= 3
+                              detection.detectorAi2Classification >= 3
                                 ? colors.negative
-                                : colors.positive,
+                                : detection.detectorAi2Classification >= 1
+                                  ? colors.warning
+                                  : colors.positive,
                           },
                         ]}
                       >
-                        {detection && detection.cohereResult}
+                        {detection && detection.detectorAi2Classification}
                         <ThemedText
                           type="small"
                           style={{ color: colors.mutedForeground }}
@@ -528,7 +530,7 @@ export default function ModalDetectScreen() {
                   ) : (
                     <Ionicons
                       name="close-circle"
-                      size={48}
+                      size={32}
                       color={colors.negative}
                     />
                   )}
@@ -540,15 +542,15 @@ export default function ModalDetectScreen() {
                   )}
                 </View>
                 {detection &&
-                detection.cohereMessage &&
-                detection.cohereResult != null ? (
+                detection.detectorAi2Message &&
+                detection.detectorAi2Classification != null ? (
                   <Pressable
                     style={{ marginTop: 8, alignItems: 'center' }}
                     onPress={() => {
                       setModalTextConfig({
                         visible: true,
-                        title: 'Justificativa da Cohere AI',
-                        text: detection?.cohereMessage ?? '-',
+                        title: `Justificativa: ${detection.detectorAi2Name}`,
+                        text: detection?.detectorAi2Message ?? '-',
                       })
                     }}
                   >
@@ -565,9 +567,9 @@ export default function ModalDetectScreen() {
                 ) : (
                   <View style={{ marginTop: 8, alignItems: 'center' }}>
                     <ThemedText style={{ textAlign: 'center' }}>
-                      {detection?.cohereResult == null
+                      {detection?.detectorAi2Classification == null
                         ? 'Falha na detecção'
-                        : detection?.cohereMessage ?? 'Não disponível'}
+                        : (detection?.detectorAi2Message ?? 'Não disponível')}
                     </ThemedText>
                   </View>
                 )}
@@ -578,26 +580,39 @@ export default function ModalDetectScreen() {
               >
                 <View style={styles.resultItemTitleSection}>
                   <Image
-                    source={require('@/assets/images/deepseek-logo.png')}
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    source={getAiLogoUrl(detection?.detectorAi3Name ?? null)}
+                    style={{ width: 44, height: 44 }}
+                    resizeMode="contain"
                   />
-                  <ThemedText style={styles.resultItemTitleTxt}>
-                    DeepSeek AI
-                  </ThemedText>
-                  {detection && detection.deepseekResult != null ? (
+                  <View style={styles.resultItemTextSection}>
+                    <ThemedText style={styles.resultItemTitleTxt}>
+                      {detection?.detectorAi3Name || 'Desconhecido'}
+                    </ThemedText>
+                    <ThemedText
+                      style={[
+                        styles.resultItemSubtitleTxt,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      Detector por AI - 3º
+                    </ThemedText>
+                  </View>
+                  {detection && detection.detectorAi3Classification != null ? (
                     <View style={{ height: 48, justifyContent: 'flex-end' }}>
                       <ThemedText
                         style={[
                           styles.resultValue,
                           {
                             color:
-                              detection.deepseekResult >= 3
+                              detection.detectorAi3Classification >= 3
                                 ? colors.negative
-                                : colors.positive,
+                                : detection.detectorAi3Classification >= 1
+                                  ? colors.warning
+                                  : colors.positive,
                           },
                         ]}
                       >
-                        {detection && detection.deepseekResult}
+                        {detection && detection.detectorAi3Classification}
                         <ThemedText
                           type="small"
                           style={{ color: colors.mutedForeground }}
@@ -610,7 +625,7 @@ export default function ModalDetectScreen() {
                   ) : (
                     <Ionicons
                       name="close-circle"
-                      size={48}
+                      size={32}
                       color={colors.negative}
                     />
                   )}
@@ -622,15 +637,15 @@ export default function ModalDetectScreen() {
                   )}
                 </View>
                 {detection &&
-                detection.deepseekMessage &&
-                detection.deepseekResult != null ? (
+                detection.detectorAi3Message &&
+                detection.detectorAi3Classification != null ? (
                   <Pressable
                     style={{ marginTop: 8, alignItems: 'center' }}
                     onPress={() => {
                       setModalTextConfig({
                         visible: true,
-                        title: 'Justificativa da DeepSeek AI',
-                        text: detection?.deepseekMessage ?? '-',
+                        title: `Justificativa: ${detection.detectorAi3Name}`,
+                        text: detection?.detectorAi3Message ?? '-',
                       })
                     }}
                   >
@@ -647,18 +662,12 @@ export default function ModalDetectScreen() {
                 ) : (
                   <View style={{ marginTop: 8, alignItems: 'center' }}>
                     <ThemedText style={{ textAlign: 'center' }}>
-                      {detection?.deepseekResult == null
+                      {detection?.detectorAi3Classification == null
                         ? 'Falha na detecção'
-                        : detection?.deepseekMessage ?? 'Não disponível'}
+                        : (detection?.detectorAi3Message ?? 'Não disponível')}
                     </ThemedText>
                   </View>
                 )}
-              </View>
-
-              <View>
-                <ThemedText style={{ textAlign: 'center', lineHeight: 12 }}>
-                  <Ionicons name="add" size={16} />
-                </ThemedText>
               </View>
 
               <View
@@ -666,32 +675,47 @@ export default function ModalDetectScreen() {
               >
                 <View style={styles.resultItemTitleSection}>
                   <Image
-                    source={require('@/assets/images/database-logo.png')}
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    source={require('@/assets/images/collaborative-logo.png')}
+                    style={{ width: 44, height: 44 }}
+                    resizeMode="contain"
                   />
-                  <ThemedText style={styles.resultItemTitleTxt}>
-                    Database
-                  </ThemedText>
-                  {detection && detection.databaseResult != null ? (
+                  <View style={styles.resultItemTextSection}>
+                    <ThemedText style={styles.resultItemTitleTxt}>
+                      Colaborativo
+                    </ThemedText>
+                    <ThemedText
+                      style={[
+                        styles.resultItemSubtitleTxt,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      Usuários e Administrador
+                    </ThemedText>
+                  </View>
+                  {detection &&
+                  detection.detectorCollaborativeClassification != null ? (
                     <View style={{ height: 48, justifyContent: 'flex-end' }}>
                       <ThemedText
                         style={[
                           styles.resultValue,
                           {
                             color:
-                              detection.databaseResult > 0
+                              detection.detectorCollaborativeClassification > 0
                                 ? colors.negative
                                 : colors.positive,
                           },
                         ]}
                       >
-                        {detection && detection.databaseResult}
+                        {detection &&
+                          detection.detectorCollaborativeClassification.toFixed(
+                            1,
+                          )}
                         <ThemedText
                           type="small"
                           style={{ color: colors.mutedForeground }}
                         >
                           {' '}
-                          / 0.5
+                          / 5
                         </ThemedText>
                       </ThemedText>
                     </View>
@@ -699,7 +723,7 @@ export default function ModalDetectScreen() {
                     <ThemedText>
                       <Ionicons
                         name="close-circle"
-                        size={48}
+                        size={32}
                         color={colors.negative}
                       />
                     </ThemedText>
@@ -717,35 +741,14 @@ export default function ModalDetectScreen() {
                     />
                   )}
                 </View>
-                {detection && detection.databaseResult == null && (
-                  <ThemedText style={{ marginTop: 16 }}>
-                    {getDatabaseTextEntity(detection)}
+                <Pressable
+                  style={styles.btnSavePhrase}
+                  onPress={() => handleModalDatabase(true)}
+                >
+                  <ThemedText style={{ color: colors.secondaryLight }}>
+                    Classificar conteúdo
                   </ThemedText>
-                )}
-                {detection &&
-                  detection.databaseResult != null &&
-                  detection.databaseUserDetect && (
-                    <Pressable
-                      style={styles.btnSavePhrase}
-                      onPress={() => handleModalDetails(true)}
-                    >
-                      <ThemedText style={{ color: colors.secondaryLight }}>
-                        Ver detalhes
-                      </ThemedText>
-                    </Pressable>
-                  )}
-                {detection &&
-                  !detection.databaseResult &&
-                  !detection.databaseUserDetect && (
-                    <Pressable
-                      style={styles.btnSavePhrase}
-                      onPress={() => handleModalDatabase(true)}
-                    >
-                      <ThemedText style={{ color: colors.secondaryLight }}>
-                        Classificar conteúdo como ofensivo
-                      </ThemedText>
-                    </Pressable>
-                  )}
+                </Pressable>
               </View>
 
               <View
@@ -754,31 +757,44 @@ export default function ModalDetectScreen() {
                 <View style={styles.resultItemTitleSection}>
                   <Image
                     source={require('@/assets/images/similarity-logo.png')}
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    style={{ width: 44, height: 44 }}
+                    resizeMode="contain"
                   />
-                  <ThemedText style={styles.resultItemTitleTxt}>
-                    Similaridade
-                  </ThemedText>
-                  {detection && detection.similarityResult != null ? (
+                  <View style={styles.resultItemTextSection}>
+                    <ThemedText style={styles.resultItemTitleTxt}>
+                      Similaridade
+                    </ThemedText>
+                    <ThemedText
+                      style={[
+                        styles.resultItemSubtitleTxt,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      Detector por Similaridade
+                    </ThemedText>
+                  </View>
+                  {detection &&
+                  detection.detectorSimilarityClassification != null ? (
                     <View style={{ height: 48, justifyContent: 'flex-end' }}>
                       <ThemedText
                         style={[
                           styles.resultValue,
                           {
                             color:
-                              detection.similarityResult > 0
+                              detection.detectorSimilarityClassification > 0
                                 ? colors.negative
                                 : colors.positive,
                           },
                         ]}
                       >
-                        {detection && detection.similarityResult}
+                        {detection &&
+                          detection.detectorSimilarityClassification.toFixed(1)}
                         <ThemedText
                           type="small"
                           style={{ color: colors.mutedForeground }}
                         >
                           {' '}
-                          / 0.5
+                          / 5
                         </ThemedText>
                       </ThemedText>
                     </View>
@@ -786,7 +802,7 @@ export default function ModalDetectScreen() {
                     <ThemedText>
                       <Ionicons
                         name="close-circle"
-                        size={48}
+                        size={32}
                         color={colors.negative}
                       />
                     </ThemedText>
@@ -856,7 +872,7 @@ export default function ModalDetectScreen() {
         </View>
       </Modal>
 
-      <Modal visible={modalDatabase} animationType="fade" transparent={true}>
+      <Modal visible={modalDatabase} animationType="fade" transparent>
         <View
           style={{
             flex: 1,
@@ -869,163 +885,106 @@ export default function ModalDetectScreen() {
               margin: 20,
               padding: 20,
               borderRadius: 10,
-              maxHeight: '60%',
-              opacity: 1,
               backgroundColor: colors.card,
               borderWidth: 1,
               borderColor: colors.mutedStrong,
             }}
           >
             <ThemedText type="subtitle" style={{ marginBottom: 12 }}>
-              Classificar como ofensivo
+              Classificar conteúdo
             </ThemedText>
-            <ScrollView>
-              <ThemedText>
-                Ao enviar, o texto gerado passará a ser considerado assédio
-                moral para o nosso sistema.
-              </ThemedText>
-            </ScrollView>
+
+            <ThemedText style={{ marginBottom: 20 }}>
+              Avalie o nível de ofensividade do texto em uma escala de 0 a 5.
+            </ThemedText>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                gap: 8,
+              }}
+            >
+              {[0, 1, 2, 3, 4, 5].map((value) => (
+                <Pressable
+                  key={value}
+                  style={[
+                    styles.btnClassification,
+                    {
+                      backgroundColor: (() => {
+                        if (
+                          selectedClassification == null ||
+                          selectedClassification !== value
+                        ) {
+                          return colors.mutedStrong
+                        }
+
+                        if (selectedClassification < 1) {
+                          return colors.positive
+                        }
+
+                        if (selectedClassification < 3) {
+                          return colors.warning
+                        }
+
+                        return colors.negative
+                      })(),
+                    },
+                  ]}
+                  onPress={() => setSelectedClassification(value)}
+                >
+                  <Text
+                    style={{
+                      color: '#fff',
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {value}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginTop: 12,
+              }}
+            >
+              <ThemedText>Inofensivo</ThemedText>
+              <ThemedText>Ofensivo</ThemedText>
+            </View>
+
             <View
               style={{
                 flexDirection: 'row',
                 justifyContent: 'flex-end',
                 gap: 8,
-                marginTop: 8,
+                marginTop: 24,
               }}
             >
               <ButtonPrimary
                 title="Cancelar"
                 dense
                 outline
-                style={{ marginTop: 24 }}
                 onPress={() => {
                   setModalDatabase(false)
+                  setSelectedClassification(null)
                 }}
               />
+
               <ButtonPrimary
                 title="Confirmar"
                 dense
-                style={{ marginTop: 24 }}
-                onPress={() => vote(true)}
+                disabled={selectedClassification === null}
+                onPress={() => {
+                  if (selectedClassification !== null) {
+                    vote(selectedClassification)
+                  }
+                }}
               />
-            </View>
-          </ThemedView>
-        </View>
-      </Modal>
-
-      <Modal visible={modalDetails} animationType="fade" transparent={true}>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-          }}
-        >
-          <ThemedView
-            style={{
-              margin: 20,
-              padding: 20,
-              borderRadius: 10,
-              maxHeight: '60%',
-              opacity: 1,
-              backgroundColor: colors.card,
-              borderWidth: 1,
-              borderColor: colors.mutedStrong,
-            }}
-          >
-            <Pressable
-              style={{ position: 'absolute', top: 0, right: 0 }}
-              onPress={() => {
-                setModalDetails(false)
-              }}
-            >
-              <Ionicons
-                name="close"
-                size={24}
-                color={colors.mutedForeground}
-                style={styles.btnClose}
-              />
-            </Pressable>
-            <ThemedText type="subtitle" style={{ marginBottom: 12 }}>
-              Detalhes da database
-            </ThemedText>
-            <ScrollView>
-              <ThemedText>
-                Classificação baseada na opinião dos usuários
-              </ThemedText>
-            </ScrollView>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                gap: 16,
-                marginTop: 24,
-              }}
-            >
-              <Pressable
-                style={[
-                  styles.btnVote,
-                  {
-                    backgroundColor: colors.positive,
-                  },
-                ]}
-                onPress={() => vote(false)}
-              >
-                <MaterialIcons name="thumb-up" size={72} color="white" />
-
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                    color: '#fff',
-                  }}
-                >
-                  Considero{'\n'}inofensivo
-                </Text>
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: Colors.dark.mutedForeground,
-                    margin: 12,
-                    width: '80%',
-                  }}
-                ></View>
-                <Text style={{ textAlign: 'center', color: '#fff' }}>
-                  Total: {detection?.databaseUsersReject ?? 0}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.btnVote,
-                  {
-                    backgroundColor: colors.negative,
-                  },
-                ]}
-                onPress={() => vote(true)}
-              >
-                <MaterialIcons name="thumb-down" size={72} color="white" />
-
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                    color: '#fff',
-                  }}
-                >
-                  Considero{'\n'}ofensivo
-                </Text>
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: Colors.dark.mutedForeground,
-                    margin: 12,
-                    width: '80%',
-                  }}
-                ></View>
-                <Text style={{ textAlign: 'center', color: '#fff' }}>
-                  Total: {detection?.databaseUsersApprove ?? 0}
-                </Text>
-              </Pressable>
             </View>
           </ThemedView>
         </View>
@@ -1070,15 +1029,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     padding: 16,
+    justifyContent: 'center',
   },
   resultItemTitleSection: {
     flexDirection: 'row',
-    alignItems: 'center',
+  },
+  resultItemTextSection: {
+    flex: 1,
+    flexDirection: 'column',
+    marginHorizontal: 16,
   },
   resultItemTitleTxt: {
     fontSize: 20,
+    lineHeight: 20,
     flex: 1,
-    marginHorizontal: 16,
+  },
+  resultItemSubtitleTxt: {
+    fontSize: 12,
+    flex: 1,
   },
   resultValue: {
     fontSize: 32,
@@ -1095,6 +1063,13 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnClassification: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },

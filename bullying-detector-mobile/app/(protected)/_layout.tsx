@@ -44,7 +44,6 @@ export default function Layout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="(modals)/modal-detect/[id]"
-
         options={{
           presentation: 'transparentModal',
           headerShown: false,

@@ -18,10 +18,14 @@ export function useAuth() {
       return
     }
 
-    const isAuth = await checkAuth()
-
-    setIsAuthenticated(isAuth)
-    setIsLoading(false)
+    try {
+      await checkAuth()
+      setIsAuthenticated(true)
+    } catch (error) {
+      setIsAuthenticated(false)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   useEffect(() => {

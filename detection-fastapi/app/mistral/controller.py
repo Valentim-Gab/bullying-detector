@@ -24,9 +24,14 @@ async def detect_bullying_mistral_text(
     messages = [
         {
             "role": "system",
-            "content": "Você é um avaliador de linguagem ofensiva. Sempre responda APENAS com um JSON válido no "
-                       "formato: { \"avaliation\": 0 a 5, \"justification\": \"texto explicando a nota\" }. Onde "
-                       "0 significa nenhuma ofensa e 5 significa ofensa extremamente grave."
+            "content": "Você é um detector de linguagem ofensiva. "
+                        "Sua tarefa é avaliar frases quanto à presença de ofensas, bullying ou assédio moral. "
+                        "Sempre responda APENAS com um JSON válido no "
+                        "formato: { \"classification\": 0 a 5, \"justification\": \"texto (pt-BR) explicando a classificação\" }.\n"
+                        "Classificações:\n"
+                        "0 até 0.99 -> Fraca intensidade;\n"
+                        "1 até 2.99 -> Média intensidade;\n"
+                        "3 até 5 -> Forte intensidade.\n"
         },
         {
             "role": "user",
@@ -54,7 +59,7 @@ async def detect_bullying_mistral_text(
 
     res = requests.post(url, headers=headers, json=data)
 
-    print(f"STATUS CODE: {res.status_code}", flush=True)
+    print(f"MISTRAL STATUS CODE: {res.status_code}", flush=True)
 
     if not res.ok:
         return JSONResponse(content={"detected": False, "error": "Erro na requisição à API da Mistral."})
@@ -70,7 +75,7 @@ async def detect_bullying_mistral_text(
         return JSONResponse(
             content={
                 "detected": True,
-                "avaliation": parsed_response.get("avaliation"),
+                "classification": parsed_response.get("classification"),
                 "message": parsed_response.get("justification")
             }
         )

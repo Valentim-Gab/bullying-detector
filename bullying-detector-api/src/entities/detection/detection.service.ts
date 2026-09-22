@@ -9,8 +9,10 @@ import { firstValueFrom } from 'rxjs'
 import { HttpStatusCode } from 'axios'
 import { Response } from 'express'
 import { SimpleDetection } from 'src/interfaces/detection.interface'
-import { DetectionBaseDto } from './dto/detection-base-dto'
+import { DetectionBaseDto } from './dto/detection-base.dto'
 import { DetectionConstants } from 'src/constants/detection.constant'
+import { DetectionHookDto } from './dto/detection-hook.dto'
+import { DetectionBatchDto } from './dto/detection-batch.dto'
 
 @Injectable()
 export class DetectionService {
@@ -28,82 +30,217 @@ export class DetectionService {
     return transcribedText
   }
 
-  async save(detection: DetectionBaseDto, idUser?: number, filename?: string) {
-    const databaseResult = await this.detectDatabase(detection.mainText)
-    const similarityResult = await this.detectSimilarity(detection.mainText)
+  async buildDetection(
+    detection: DetectionBaseDto,
+    idUser?: number,
+    filename?: string,
+  ): Promise<Omit<Detection, 'idDetection'>> {
+    const fail = {
+      detected: false,
+      classification: 0,
+      message: 'Falha na detecção',
+    }
 
-    // const mistralResult = await this.detectMistral(
-    //   detection.mainText,
-    //   detection.context,
-    // )
-    // const cohereResult = await this.detectCohere(
-    //   detection.mainText,
-    //   detection.context,
-    // )
-    // const deepSeekResult = await this.detectDeepSeek(
-    //   detection.mainText,
-    //   detection.context,
-    // )
+    const [
+      mistralResult,
+      cohereResult,
+      geminiResult,
+      collaborativeResult,
+      similarityResult,
+    ] = await Promise.all([
+      // this.detectMistral(detection.mainText, detection.context),
+      // this.detectCohere(detection.mainText, detection.context),
+      // this.detectGemini(detection.mainText, detection.context),
+      fail,
+      fail,
+      fail,
+      this.detectDatabase(detection.mainText),
+      this.detectSimilarity(detection.mainText),
+    ])
 
-    const mistralResult = null
-    const cohereResult = null
-    const deepSeekResult = null
-
-    // Cria array com IA que retornaram resultado
-    const iaResults = [mistralResult, cohereResult, deepSeekResult].filter(
-      (r) => r && r.detected === true,
+    const iaResults = [mistralResult, cohereResult, geminiResult].filter(
+      (result) => result?.detected === true,
     )
 
-    // Se não detectou nenhuma IA, média = 0
     const iaAverage =
       iaResults.length > 0
-        ? iaResults.reduce((acc, curr) => acc + (curr.avaliation ?? 0), 0) /
-          iaResults.length
+        ? iaResults.reduce(
+            (acc, result) => acc + (result.classification ?? 0),
+            0,
+          ) / iaResults.length
         : 0
 
-    // Extras
-    const database = databaseResult?.avaliation ?? 0
-    const similarity = similarityResult?.avaliation ?? 0
-    const extras = database + similarity
+    const collaborativeUserDetect =
+      collaborativeResult?.collaborativeUserDetect ?? false
 
-    // Limita máximo em 5
-    const avaliation = Math.min(
-      iaAverage + extras,
-      DetectionConstants.AVALIATION_MAX_VALUE,
-    )
+    const collaborative =
+      collaborativeUserDetect && collaborativeResult?.classification != null
+        ? collaborativeResult.classification
+        : null
+
+    const similarity =
+      (similarityResult as SimpleDetection)?.classification ?? null
+
+    let finalClassification = iaAverage
+
+    if (collaborativeUserDetect && collaborative != null) {
+      finalClassification = collaborative
+    } else if (iaResults.length === 0) {
+      finalClassification = similarity ?? 0
+    }
 
     const newDetection: Omit<Detection, 'idDetection'> = {
       recordingAudio: filename,
       mainText: detection.mainText,
       context: detection.context,
-      mistralResult: mistralResult?.avaliation ?? null,
-      mistralMessage: mistralResult?.message,
-      cohereResult: cohereResult?.avaliation ?? null,
-      cohereMessage: cohereResult?.message,
-      deepseekResult: deepSeekResult?.avaliation ?? null,
-      deepseekMessage: deepSeekResult?.message,
-      databaseResult: databaseResult.avaliation ?? null,
-      databaseUserDetect: databaseResult.databaseUserDetect,
-      databaseUsersApprove: null,
-      databaseUsersReject: null,
-      similarityResult: similarityResult?.avaliation ?? null,
-      avaliation: avaliation,
-      idPhrase: databaseResult.idPhrase ?? null,
-      idUser: idUser,
-      externalId: detection.externalId,
-      externalModule: detection.externalModule,
+
+      detectorAi1Name: 'Mistral',
+      detectorAi1Classification: mistralResult?.classification ?? null,
+      detectorAi1Message: mistralResult?.message,
+
+      detectorAi2Name: 'Cohere',
+      detectorAi2Classification: cohereResult?.classification ?? null,
+      detectorAi2Message: cohereResult?.message,
+
+      detectorAi3Name: 'Gemini',
+      detectorAi3Classification: geminiResult?.classification ?? null,
+      detectorAi3Message: geminiResult?.message,
+
+      detectorCollaborativeClassification: collaborative,
+      detectorCollaborativeUserDetect: collaborativeUserDetect,
+      detectorCollaborativeUsersApprove: null,
+      detectorCollaborativeUsersReject: null,
+
+      detectorSimilarityClassification: similarity,
+
+      finalClassification,
+
+      idPhrase: collaborativeResult?.idPhrase ?? null,
+      idUser,
+      externalId: detection.external?.id ?? null,
+      externalModule: detection.external?.module ?? null,
     }
+
+    return newDetection
+  }
+
+  async save(detection: DetectionBaseDto, idUser?: number, filename?: string) {
+    const newDetection = await this.buildDetection(detection, idUser, filename)
 
     return this.prismaUtil.performOperation(
       'Não foi possível realizar a detecção',
       async () => {
-        const detection = await this.prisma.detection.create({
+        const createdDetection = await this.prisma.detection.create({
           data: newDetection,
         })
 
-        return detection
+        if (
+          detection.hook &&
+          detection.hook.hookUrl &&
+          detection.hook.hookMethod &&
+          detection.hook.hookFinalClassificationBodyKey
+        ) {
+          await this.updateExternalHook<Record<string, number>>(
+            detection.hook,
+            {
+              [detection.hook.hookFinalClassificationBodyKey]:
+                newDetection.finalClassification,
+              [detection.hook.hookIdBodyKey || 'id']: detection.external.id,
+            },
+          )
+        }
+
+        return createdDetection
       },
     )
+  }
+
+  async saveBatch(detectionBatch: DetectionBatchDto, idUser?: number) {
+    console.log('Detections to process:', detectionBatch.detections.length)
+
+    if (detectionBatch.detections.length > 2000) {
+      throw new BadRequestException(
+        'O lote não pode conter mais que 2000 detecções.',
+      )
+    }
+
+    const chunkSize = 50
+    const allCreatedDetections: any[] = []
+
+    // Processa cada lote em uma transação separada
+    for (let i = 0; i < detectionBatch.detections.length; i += chunkSize) {
+      const chunk = detectionBatch.detections.slice(i, i + chunkSize)
+
+      // Monta as detecções do grupo
+      const chunkDetections = await Promise.all(
+        chunk.map((detection) =>
+          this.buildDetection(detection, idUser, undefined),
+        ),
+      )
+
+      // Salva o grupo no banco dentro de uma transação curta
+      await this.prismaUtil.performOperation(
+        `Erro ao salvar lote ${i / chunkSize + 1}`,
+        async () => {
+          await this.prisma.detection.createMany({
+            data: chunkDetections,
+          })
+        },
+        60_000,
+      )
+
+      allCreatedDetections.push(...chunkDetections)
+      console.log(
+        `✅ Lote ${i / chunkSize + 1} salvo com ${chunkDetections.length} registros`,
+      )
+    }
+
+    // Executa hook externo (se configurado)
+    if (
+      detectionBatch.hook &&
+      detectionBatch.hook.hookUrl &&
+      detectionBatch.hook.hookMethod &&
+      detectionBatch.hook.hookFinalClassificationBodyKey
+    ) {
+      const updateHookData = allCreatedDetections.map((d) => ({
+        [detectionBatch.hook.hookFinalClassificationBodyKey]:
+          d.finalClassification,
+        [detectionBatch.hook.hookIdBodyKey || 'id']: d.externalId,
+      }))
+
+      await this.prismaUtil.performOperation(
+        'Erro ao atualizar hook externo',
+        async () => {
+          await this.updateExternalHook<Array<Record<string, number>>>(
+            detectionBatch.hook,
+            updateHookData,
+          )
+        },
+      )
+    }
+
+    return { totalSaved: allCreatedDetections.length }
+  }
+
+  private async updateExternalHook<T>(hook: DetectionHookDto, data: T) {
+    try {
+      const res = await firstValueFrom(
+        this.httpService.request({
+          url: hook.hookUrl,
+          method: hook.hookMethod,
+          headers: {
+            Authorization: hook.hookToken
+              ? `Bearer ${hook.hookToken}`
+              : undefined,
+          },
+          data: data,
+        }),
+      )
+
+      return res.data
+    } catch (error) {
+      console.error('Erro ao chamar webhook:', error)
+    }
   }
 
   async saveFile(file: Express.Multer.File, idUser: number) {
@@ -173,30 +310,47 @@ export class DetectionService {
   }
 
   async detectDatabase(text: string): Promise<SimpleDetection | null> {
-    const result = await this.prisma.$queryRaw` 
-      SELECT 
-        CASE WHEN EXISTS (
-          SELECT 1
-          FROM BULLYING_PHRASE
-          WHERE ${text} ILIKE CONCAT('%', phrase, '%')
-          AND IS_BULLYING
-        ) THEN TRUE
-        ELSE FALSE
-        END AS BULLYING_PHRASE, USER_DETECT, ID_PHRASE
-      FROM BULLYING_PHRASE
-      WHERE ${text} ILIKE CONCAT('%', phrase, '%')
-      AND IS_BULLYING
-      LIMIT 1;
-    `
+    const result = await this.prisma.$queryRaw<
+      {
+        bullying_phrase: boolean
+        user_detect: boolean | null
+        id_phrase: number | null
+        final_classification: number | null
+      }[]
+    >`
+    SELECT
+      TRUE AS bullying_phrase,
+      bp.user_detect,
+      bp.id_phrase,
+      (
+        SELECT d.final_classification
+        FROM DETECTION d
+        WHERE d.id_phrase = bp.id_phrase
+          AND d.final_classification IS NOT NULL
+        ORDER BY d.id_detection DESC
+        LIMIT 1
+      ) AS final_classification
+    FROM BULLYING_PHRASE bp
+    WHERE ${text} ILIKE CONCAT('%', bp.phrase, '%')
+      AND bp.is_bullying
+    LIMIT 1;
+  `
+
+    const detection = result[0]
+
+    if (!detection) {
+      return null
+    }
+
+    const collaborativeUserDetect = detection.user_detect ?? false
 
     return {
-      detected: result[0]?.bullying_Phrase ?? false,
-      avaliation:
-        result[0]?.bullying_Phrase || result[0]?.user_detect
-          ? DetectionConstants.DATABASE_MAX_VALUE
-          : 0,
-      databaseUserDetect: result[0]?.user_detect ?? null,
-      idPhrase: result[0]?.id_phrase,
+      detected: true,
+      classification: collaborativeUserDetect
+        ? detection.final_classification
+        : 0,
+      collaborativeUserDetect,
+      idPhrase: detection.id_phrase,
     }
   }
 
@@ -236,6 +390,29 @@ export class DetectionService {
       return res.data
     } catch (error) {
       console.error('Erro ao fazer requisição para FastAPI:', error)
+    }
+  }
+
+  async detectGemini(
+    text: string,
+    context?: string,
+  ): Promise<SimpleDetection | null> {
+    let url = `${this.config.get('detectApiUrl')}/detect/gemini/text?text_input=${encodeURIComponent(text)}`
+
+    if (context) {
+      url += `&context_input=${encodeURIComponent(context)}`
+    }
+
+    try {
+      const res = await firstValueFrom(this.httpService.get(url))
+
+      if (!res || res.status != HttpStatusCode.Ok) {
+        return null
+      }
+
+      return res.data
+    } catch (error) {
+      console.error('Erro ao fazer requisição para FastAPI Gemini:', error)
     }
   }
 
@@ -296,50 +473,52 @@ export class DetectionService {
     }
   }
 
-  async updateVote(
-    idDetection: number,
-    voteApprove: number,
-    voteReject: number,
-  ): Promise<Detection> {
+  async updateVote(idDetection: number): Promise<Detection> {
     const detection = await this.findById(idDetection)
 
     if (!detection) {
       throw new BadRequestException('Detecção não encontrada')
     }
 
-    const newApprove = Math.max(
-      (detection.databaseUsersApprove ?? 0) + voteApprove,
-      0,
-    )
-    const newReject = Math.max(
-      (detection.databaseUsersReject ?? 0) + voteReject,
-      0,
-    )
+    const votes = await this.prisma.vote.findMany({
+      where: {
+        detectionId: idDetection,
+        voteClassification: {
+          not: null,
+        },
+      },
+      select: {
+        voteClassification: true,
+      },
+    })
 
-    detection.databaseUsersApprove = newApprove
-    detection.databaseUsersReject = newReject
-    detection.databaseUserDetect = newApprove > 0 || newReject > 0
+    const classifications = votes
+      .map((vote) => vote.voteClassification)
+      .filter(
+        (classification): classification is number => classification !== null,
+      )
 
-    if (detection.databaseResult > 0 && newApprove <= newReject) {
-      detection.avaliation -= detection.databaseResult
-    }
+    const collaborativeClassification =
+      classifications.length > 0
+        ? classifications.reduce(
+            (sum, classification) => sum + classification,
+            0,
+          ) / classifications.length
+        : null
 
-    detection.databaseResult =
-      newApprove > newReject ? DetectionConstants.DATABASE_MAX_VALUE : 0
-
-    const avaliation = Math.min(
-      detection.databaseResult + detection.avaliation,
-      DetectionConstants.AVALIATION_MAX_VALUE,
-    )
+    const finalClassification =
+      collaborativeClassification ?? detection.finalClassification
 
     return this.prisma.detection.update({
-      where: { idDetection },
+      where: {
+        idDetection,
+      },
       data: {
-        databaseUsersApprove: detection.databaseUsersApprove,
-        databaseUsersReject: detection.databaseUsersReject,
-        databaseUserDetect: detection.databaseUserDetect,
-        databaseResult: detection.databaseResult,
-        avaliation: avaliation,
+        detectorCollaborativeClassification: collaborativeClassification,
+        detectorCollaborativeUserDetect: classifications.length > 0,
+        detectorCollaborativeUsersApprove: null,
+        detectorCollaborativeUsersReject: null,
+        finalClassification,
       },
     })
   }
@@ -354,5 +533,9 @@ export class DetectionService {
         idPhrase: idPhrase,
       },
     })
+  }
+
+  async deleteAll(): Promise<void> {
+    await this.prisma.detection.deleteMany()
   }
 }

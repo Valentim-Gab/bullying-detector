@@ -8,11 +8,6 @@ export class UserService {
 
   async getMe(): Promise<User | null> {
     const res = await axiosService(`${this.apiUrl}/user/@me`)
-    
-    if (!res || res.status != HttpStatusCode.Ok) {
-      return null
-    }
-
     return res.data
   }
 }

@@ -94,7 +94,13 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 exports.Prisma.AvaliationScalarFieldEnum = {
   idAvaliation: 'idAvaliation',
-  mainText: 'mainText'
+  mainText: 'mainText',
+  bertClassification: 'bertClassification',
+  studentSituation: 'studentSituation',
+  finalAverage: 'finalAverage',
+  concept: 'concept',
+  detected: 'detected',
+  bullyingClassification: 'bullyingClassification'
 };
 
 exports.Prisma.SortOrder = {
@@ -105,6 +111,11 @@ exports.Prisma.SortOrder = {
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
+};
+
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
 };
 
 
@@ -122,7 +133,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\gabriel.arruda\\Desktop\\Projects\\Pessoal\\bullying-detector\\bullying-detector-api\\prisma\\generated\\clientUfsm",
+      "value": "C:\\Users\\gabri\\OneDrive\\Área de Trabalho\\Utils\\Projects\\bullying-detector\\bullying-detector-api\\prisma\\generated\\clientUfsm",
       "fromEnvVar": null
     },
     "config": {
@@ -136,7 +147,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\gabriel.arruda\\Desktop\\Projects\\Pessoal\\bullying-detector\\bullying-detector-api\\prisma\\ufsm-schema.prisma",
+    "sourceFilePath": "C:\\Users\\gabri\\OneDrive\\Área de Trabalho\\Utils\\Projects\\bullying-detector\\bullying-detector-api\\prisma\\ufsm-schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -159,13 +170,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// npx prisma generate --schema=prisma/ufsm-schema.prisma\n\ngenerator clientUfsm {\n  provider = \"prisma-client-js\"\n  output   = \"./generated/clientUfsm\"\n}\n\ndatasource ufsmDb {\n  provider = \"postgresql\"\n  url      = env(\"UFSM_DATABASE_URL\")\n}\n\nmodel Avaliation {\n  idAvaliation Int    @id @default(autoincrement()) @map(\"id_avaliation\")\n  mainText     String @map(\"main_text\")\n\n  @@map(\"avaliation\")\n}\n",
-  "inlineSchemaHash": "d4fc70d5552426c2b2b038ba5ab503e12e847faf799b1db44336d674da4b9ba7",
+  "inlineSchema": "generator clientUfsm {\n  provider = \"prisma-client-js\"\n  output   = \"./generated/clientUfsm\"\n}\n\ndatasource ufsmDb {\n  provider = \"postgresql\"\n  url      = env(\"UFSM_DATABASE_URL\")\n}\n\nmodel Avaliation {\n  idAvaliation           Int      @id @map(\"id_avaliation\")\n  mainText               String?  @map(\"main_text\")\n  bertClassification     String?  @map(\"bert_classification\") @ufsmDb.VarChar(20)\n  studentSituation       String?  @map(\"student_situation\") @ufsmDb.VarChar(255)\n  finalAverage           Float?   @map(\"final_average\")\n  concept                String?  @map(\"concept\") @ufsmDb.VarChar(50)\n  detected               Boolean? @default(false)\n  bullyingClassification Float?   @map(\"bullying_classification\")\n\n  @@map(\"avaliation\")\n}\n",
+  "inlineSchemaHash": "adc9b58a73322aae8a3d8581e2e428751f5970151bbcd59fd0cbb304a48bb6e0",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Avaliation\":{\"dbName\":\"avaliation\",\"schema\":null,\"fields\":[{\"name\":\"idAvaliation\",\"dbName\":\"id_avaliation\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"mainText\",\"dbName\":\"main_text\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Avaliation\":{\"dbName\":\"avaliation\",\"schema\":null,\"fields\":[{\"name\":\"idAvaliation\",\"dbName\":\"id_avaliation\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"mainText\",\"dbName\":\"main_text\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"bertClassification\",\"dbName\":\"bert_classification\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"20\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"studentSituation\",\"dbName\":\"student_situation\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"finalAverage\",\"dbName\":\"final_average\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Float\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"concept\",\"dbName\":\"concept\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"50\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"detected\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"bullyingClassification\",\"dbName\":\"bullying_classification\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Float\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = undefined
 config.compilerWasm = undefined

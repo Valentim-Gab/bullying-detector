@@ -111,7 +111,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
     gap: 32,
-    padding: 32,
+    paddingVertical: 32,
+    paddingHorizontal: 20,
   },
   profileSection: {
     flexDirection: 'column',

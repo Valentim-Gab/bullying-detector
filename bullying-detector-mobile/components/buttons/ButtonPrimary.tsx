@@ -1,11 +1,10 @@
 import React, { useRef } from 'react'
 import {
   Animated,
+  DimensionValue,
   Pressable,
   PressableProps,
-  StyleProp,
   StyleSheet,
-  ViewProps,
 } from 'react-native'
 import { ThemedText } from '../ThemedText'
 import { useTheme } from '@/hooks/useTheme'
@@ -27,6 +26,8 @@ interface ButtonPrimaryProps extends PressableProps {
   mini?: boolean
   color?: ColorKeys
   outline?: boolean
+  width?: DimensionValue
+  height?: DimensionValue
 }
 
 export default function ButtonPrimary(props: ButtonPrimaryProps) {
@@ -62,12 +63,22 @@ export default function ButtonPrimary(props: ButtonPrimaryProps) {
           props.noShadow && styles.noShadow,
           props.mini && styles.mini,
           props.outline && styles.outline,
+          typeof props.width !== 'undefined'
+            ? { width: props.width }
+            : undefined,
+          typeof props.height !== 'undefined' && props.height !== 0
+            ? { height: props.height }
+            : undefined,
         ]}
       >
         {props.icon && props.icon}
         {props.title && (
           <ThemedText
-            style={[styles.text, props.outline && styles.outlineText]}
+            style={
+              props.flat
+                ? { color: props.color }
+                : [styles.text, props.outline && styles.outlineText]
+            }
           >
             {props.title}
           </ThemedText>

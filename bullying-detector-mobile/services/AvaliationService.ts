@@ -1,17 +1,37 @@
 import { environment } from '@/environments/environment'
 import { Avaliation } from '@/interfaces/Avaliation'
 import axiosService from './interceptors/AxiosService'
-import { HttpStatusCode } from 'axios'
+import { Pagination } from '@/interfaces/Pagintation'
 
 export class AvaliationService {
   private readonly apiUrl = environment.apiUrl
 
   async getAll(): Promise<Avaliation[] | null> {
     const res = await axiosService(`${this.apiUrl}/avaliation`)
+    return res.data
+  }
 
-    if (!res || res.status != HttpStatusCode.Ok) {
-      return null
-    }
+  async getAllPagination(
+    page: number,
+    perPage: number,
+    search: string,
+    detected?: boolean
+  ): Promise<Pagination<Avaliation> | null> {
+    console.log('AvaliacaoService - getAllPagination called with:', {
+      page,
+      perPage,
+      search,
+      detected,
+    })
+
+    const res = await axiosService(`${this.apiUrl}/avaliation/pagination`, {
+      params: {
+        page,
+        perPage,
+        search,
+        detected,
+      },
+    })
 
     return res.data
   }

@@ -18,11 +18,7 @@ export function ThemedScroll({
 
   return (
     <SafeAreaView style={[{ backgroundColor }, style]}>
-      <ScrollView
-        style={[{ backgroundColor }, style]}
-        {...otherProps}
-        className="flex-1"
-      />
+      <ScrollView style={[{ backgroundColor }, style]} {...otherProps} />
     </SafeAreaView>
   )
 }
