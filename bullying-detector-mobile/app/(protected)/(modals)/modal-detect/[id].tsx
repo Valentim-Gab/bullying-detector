@@ -282,7 +282,7 @@ export default function ModalDetectScreen() {
                     <ThemedText>
                       <Ionicons
                         name="close-circle"
-                        size={48}
+                        size={32}
                         color={colors.negative}
                       />
                     </ThemedText>
@@ -434,7 +434,7 @@ export default function ModalDetectScreen() {
                   ) : (
                     <Ionicons
                       name="close-circle"
-                      size={48}
+                      size={32}
                       color={colors.negative}
                     />
                   )}
@@ -530,7 +530,7 @@ export default function ModalDetectScreen() {
                   ) : (
                     <Ionicons
                       name="close-circle"
-                      size={48}
+                      size={32}
                       color={colors.negative}
                     />
                   )}
@@ -625,7 +625,7 @@ export default function ModalDetectScreen() {
                   ) : (
                     <Ionicons
                       name="close-circle"
-                      size={48}
+                      size={32}
                       color={colors.negative}
                     />
                   )}
@@ -708,7 +708,7 @@ export default function ModalDetectScreen() {
                       >
                         {detection &&
                           detection.detectorCollaborativeClassification.toFixed(
-                            2,
+                            1,
                           )}
                         <ThemedText
                           type="small"
@@ -723,7 +723,7 @@ export default function ModalDetectScreen() {
                     <ThemedText>
                       <Ionicons
                         name="close-circle"
-                        size={48}
+                        size={32}
                         color={colors.negative}
                       />
                     </ThemedText>
@@ -788,13 +788,13 @@ export default function ModalDetectScreen() {
                         ]}
                       >
                         {detection &&
-                          detection.detectorSimilarityClassification}
+                          detection.detectorSimilarityClassification.toFixed(1)}
                         <ThemedText
                           type="small"
                           style={{ color: colors.mutedForeground }}
                         >
                           {' '}
-                          / 1
+                          / 5
                         </ThemedText>
                       </ThemedText>
                     </View>
@@ -802,7 +802,7 @@ export default function ModalDetectScreen() {
                     <ThemedText>
                       <Ionicons
                         name="close-circle"
-                        size={48}
+                        size={32}
                         color={colors.negative}
                       />
                     </ThemedText>

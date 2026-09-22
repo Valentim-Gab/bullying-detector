@@ -4,4 +4,5 @@ export interface SimpleDetection {
   message?: string
   idPhrase?: number
   collaborativeUserDetect?: boolean | null
+  similarity?: number | null
 }

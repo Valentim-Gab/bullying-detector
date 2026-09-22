@@ -35,14 +35,11 @@ export class DetectionService {
     idUser?: number,
     filename?: string,
   ): Promise<Omit<Detection, 'idDetection'>> {
-    // const [databaseResult, similarityResult] = await Promise.all([
-    //   this.detectDatabase(detection.mainText),
-    //   this.detectSimilarity(detection.mainText),
-    // ])
-
-    // const mistralResult = null
-    // const cohereResult = null
-    // const geminiResult = null
+    const fail = {
+      detected: false,
+      classification: 0,
+      message: 'Falha na detecção',
+    }
 
     const [
       mistralResult,
@@ -51,61 +48,75 @@ export class DetectionService {
       collaborativeResult,
       similarityResult,
     ] = await Promise.all([
-      this.detectMistral(detection.mainText, detection.context),
-      this.detectCohere(detection.mainText, detection.context),
-      //null, // this.detectDeepSeek(detection.mainText, detection.context),
-      this.detectGemini(detection.mainText, detection.context),
+      // this.detectMistral(detection.mainText, detection.context),
+      // this.detectCohere(detection.mainText, detection.context),
+      // this.detectGemini(detection.mainText, detection.context),
+      fail,
+      fail,
+      fail,
       this.detectDatabase(detection.mainText),
       this.detectSimilarity(detection.mainText),
     ])
 
-    // Cria array com IA que retornaram resultado
     const iaResults = [mistralResult, cohereResult, geminiResult].filter(
-      (r) => r && r.detected === true,
+      (result) => result?.detected === true,
     )
 
-    // Se não detectou nenhuma IA, média = 0
     const iaAverage =
       iaResults.length > 0
-        ? iaResults.reduce((acc, curr) => acc + (curr.classification ?? 0), 0) /
-          iaResults.length
+        ? iaResults.reduce(
+            (acc, result) => acc + (result.classification ?? 0),
+            0,
+          ) / iaResults.length
         : 0
 
-    // Extras
-    const collaborative =
-      (collaborativeResult as SimpleDetection)?.classification ?? 0
-    const similarity =
-      (similarityResult as SimpleDetection)?.classification ?? 0
-    const extras = collaborative + similarity
+    const collaborativeUserDetect =
+      collaborativeResult?.collaborativeUserDetect ?? false
 
-    // Limita máximo em 5
-    const finalClassification = Math.min(
-      iaAverage + extras,
-      DetectionConstants.FINAL_CLASSIFICATION_MAX_VALUE,
-    )
+    const collaborative =
+      collaborativeUserDetect && collaborativeResult?.classification != null
+        ? collaborativeResult.classification
+        : null
+
+    const similarity =
+      (similarityResult as SimpleDetection)?.classification ?? null
+
+    let finalClassification = iaAverage
+
+    if (collaborativeUserDetect && collaborative != null) {
+      finalClassification = collaborative
+    } else if (iaResults.length === 0) {
+      finalClassification = similarity ?? 0
+    }
 
     const newDetection: Omit<Detection, 'idDetection'> = {
       recordingAudio: filename,
       mainText: detection.mainText,
       context: detection.context,
+
       detectorAi1Name: 'Mistral',
       detectorAi1Classification: mistralResult?.classification ?? null,
       detectorAi1Message: mistralResult?.message,
+
       detectorAi2Name: 'Cohere',
       detectorAi2Classification: cohereResult?.classification ?? null,
       detectorAi2Message: cohereResult?.message,
+
       detectorAi3Name: 'Gemini',
       detectorAi3Classification: geminiResult?.classification ?? null,
       detectorAi3Message: geminiResult?.message,
+
       detectorCollaborativeClassification: collaborative,
-      detectorCollaborativeUserDetect:
-        collaborativeResult?.collaborativeUserDetect ?? false,
+      detectorCollaborativeUserDetect: collaborativeUserDetect,
       detectorCollaborativeUsersApprove: null,
       detectorCollaborativeUsersReject: null,
+
       detectorSimilarityClassification: similarity,
-      finalClassification: finalClassification,
+
+      finalClassification,
+
       idPhrase: collaborativeResult?.idPhrase ?? null,
-      idUser: idUser,
+      idUser,
       externalId: detection.external?.id ?? null,
       externalModule: detection.external?.module ?? null,
     }
@@ -299,30 +310,47 @@ export class DetectionService {
   }
 
   async detectDatabase(text: string): Promise<SimpleDetection | null> {
-    const result = await this.prisma.$queryRaw` 
-      SELECT 
-        CASE WHEN EXISTS (
-          SELECT 1
-          FROM BULLYING_PHRASE
-          WHERE ${text} ILIKE CONCAT('%', phrase, '%')
-          AND IS_BULLYING
-        ) THEN TRUE
-        ELSE FALSE
-        END AS BULLYING_PHRASE, USER_DETECT, ID_PHRASE
-      FROM BULLYING_PHRASE
-      WHERE ${text} ILIKE CONCAT('%', phrase, '%')
-      AND IS_BULLYING
-      LIMIT 1;
-    `
+    const result = await this.prisma.$queryRaw<
+      {
+        bullying_phrase: boolean
+        user_detect: boolean | null
+        id_phrase: number | null
+        final_classification: number | null
+      }[]
+    >`
+    SELECT
+      TRUE AS bullying_phrase,
+      bp.user_detect,
+      bp.id_phrase,
+      (
+        SELECT d.final_classification
+        FROM DETECTION d
+        WHERE d.id_phrase = bp.id_phrase
+          AND d.final_classification IS NOT NULL
+        ORDER BY d.id_detection DESC
+        LIMIT 1
+      ) AS final_classification
+    FROM BULLYING_PHRASE bp
+    WHERE ${text} ILIKE CONCAT('%', bp.phrase, '%')
+      AND bp.is_bullying
+    LIMIT 1;
+  `
+
+    const detection = result[0]
+
+    if (!detection) {
+      return null
+    }
+
+    const collaborativeUserDetect = detection.user_detect ?? false
 
     return {
-      detected: result[0]?.bullying_phrase ?? false,
-      classification:
-        result[0]?.bullying_phrase || result[0]?.user_detect
-          ? DetectionConstants.COLLABORATIVE_MAX_VALUE
-          : 0,
-      collaborativeUserDetect: result[0]?.user_detect ?? null,
-      idPhrase: result[0]?.id_phrase,
+      detected: true,
+      classification: collaborativeUserDetect
+        ? detection.final_classification
+        : 0,
+      collaborativeUserDetect,
+      idPhrase: detection.id_phrase,
     }
   }
 
